@@ -1,0 +1,2766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MedFocus R1 — Cronograma MedCof & Matriz de Questões</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,600;0,6..72,700;1,6..72,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #f6f2ea;
+      --bg-secondary: #ede7dc;
+      --bg-tertiary: #e3dbcd;
+      --border-color: #d6cbb9;
+      --text-main: #3b352e;
+      --text-muted: #786e60;
+      --accent-teal: #0f7490;
+      --accent-terracotta: #c86d51;
+      --card-shadow: 0 2px 8px rgba(59, 53, 46, 0.06);
+    }
+
+    html.dark {
+      --bg-primary: #161618;
+      --bg-secondary: #202024;
+      --bg-tertiary: #2a2a30;
+      --border-color: #34343c;
+      --text-main: #eceae5;
+      --text-muted: #9ca3af;
+      --accent-teal: #14b8a6;
+      --accent-terracotta: #e07a5f;
+      --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .font-serif-title {
+      font-family: 'Newsreader', Georgia, serif;
+    }
+
+    .card-surface {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--card-shadow);
+    }
+
+    .card-inset {
+      background-color: var(--bg-primary);
+      border: 1px solid var(--border-color);
+    }
+
+    .input-surface {
+      background-color: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    .input-surface:focus {
+      outline: 2px solid var(--accent-teal);
+      border-color: transparent;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* Progress bar style matching Obsidian screenshot */
+    .obsidian-progress-track {
+      width: 100%;
+      max-width: 135px;
+      height: 8px;
+      background-color: rgba(120, 110, 96, 0.22);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .obsidian-progress-fill {
+      height: 100%;
+      background-color: var(--accent-teal);
+      border-radius: 9999px;
+      transition: width 0.35s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--accent-teal);
+      color: #ffffff;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOPBAR / CABEÇALHO -->
+  <header class="card-surface sticky top-0 z-30 px-4 py-2.5 border-b">
+    <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand + Status de Salvamento -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-sm" style="background-color: var(--accent-teal);">
+          🩺
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-base sm:text-lg tracking-tight">MedFocus R1</h1>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background-color: var(--bg-tertiary); color: var(--accent-terracotta);">
+              ENAMED + RJ 2027
+            </span>
+          </div>
+          <div class="flex items-center gap-2 text-xs" style="color: var(--text-muted);">
+            <span id="save-indicator" class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+              ● Salvo localmente neste navegador
+            </span>
+            <span>•</span>
+            <span id="last-backup-label">Último backup: ainda não exportado hoje</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navegação de Abas Principais -->
+      <nav class="flex items-center gap-1.5 p-1 rounded-xl card-inset overflow-x-auto max-w-full">
+        <button onclick="switchTab('questoes')" id="tab-btn-questoes" class="tab-btn active px-3.5 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap transition-all">
+          📊 Painel & Questões
+        </button>
+        <button onclick="switchTab('cronograma')" id="tab-btn-cronograma" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap transition-all">
+          📚 Cronograma MedCof (414)
+        </button>
+        <button onclick="switchTab('estatisticas')" id="tab-btn-estatisticas" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap transition-all">
+          📈 Estatísticas & Bagagem
+        </button>
+        <button onclick="switchTab('backup')" id="tab-btn-backup" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs sm:text-sm whitespace-nowrap transition-all">
+          🔄 Backup & Obsidian
+        </button>
+      </nav>
+
+      <!-- Botões Rápidos: Registrar Questões + Backup Instantâneo + Dark Mode -->
+      <div class="flex items-center gap-2">
+        <button onclick="openQuestionModal()" class="px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-white shadow-sm hover:opacity-95 transition flex items-center gap-1.5" style="background-color: var(--accent-terracotta);">
+          <span>➕</span> <span>Registrar Questões</span>
+        </button>
+        <button onclick="exportBackupJSON()" title="Baixar arquivo .json com todos os seus dados" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold card-inset hover:opacity-80 transition flex items-center gap-1">
+          <span>💾</span> <span class="hidden md:inline">Backup</span>
+        </button>
+        <label title="Restaurar um arquivo .json de backup" class="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold card-inset hover:opacity-80 transition flex items-center gap-1 cursor-pointer">
+          <span>📂</span> <span class="hidden md:inline">Restaurar</span>
+          <input type="file" id="restore-file-input" accept=".json" class="hidden" onchange="importBackupJSON(event)" />
+        </label>
+        <button onclick="toggleDarkMode()" id="theme-toggle-btn" title="Alternar Modo Claro / Escuro" class="w-9 h-9 rounded-xl card-inset flex items-center justify-center text-sm hover:opacity-80 transition">
+          🌙
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CORPO PRINCIPAL: SIDEBAR DE WIDGETS + CONTEÚDO -->
+  <div class="max-w-[1600px] w-full mx-auto flex-1 flex flex-col lg:flex-row gap-5 p-4">
+
+    <!-- BARRA LATERAL (MICRO-WIDGETS VISUAIS COMPACTOS) -->
+    <aside class="w-full lg:w-[230px] shrink-0 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-col gap-3">
+      
+      <!-- WIDGET 1: ANEL DA META DIÁRIA (ZERO TEXTO LONGO) -->
+      <div class="card-surface rounded-2xl p-3.5 flex flex-col items-center gap-2.5">
+        <div class="w-full flex items-center justify-between text-[11px] font-bold uppercase tracking-wider" style="color: var(--text-muted);">
+          <span>🎯 Meta Diária</span>
+          <button onclick="openDailyGoalAdjustModal()" title="Ajustar questões avulsas de hoje ou meta" class="hover:underline text-xs" style="color: var(--accent-teal);">✎ meta</button>
+        </div>
+
+        <div class="relative w-24 h-24 flex items-center justify-center">
+          <svg class="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="40" fill="transparent" stroke="currentColor" stroke-width="10" class=" opacity-20" />
+            <circle id="widget-ring-circle" cx="50" cy="50" r="40" fill="transparent" stroke="#0f7490" stroke-width="10" stroke-dasharray="251.32" stroke-dashoffset="251.32" stroke-linecap="round" style="transition: stroke-dashoffset 0.4s ease, stroke 0.3s ease;" />
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center leading-tight">
+            <span id="widget-daily-done" class="text-xl font-extrabold">0</span>
+            <span id="widget-daily-target" class="text-[11px]" style="color: var(--text-muted);">/40</span>
+          </div>
+        </div>
+
+        <div class="w-full flex items-center justify-center gap-2">
+          <span id="widget-daily-pct" class="px-2.5 py-1 rounded-lg text-xs font-bold card-inset">🎯 0%</span>
+          <span id="widget-streak-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-500/15 text-orange-600 dark:text-orange-400">🔥 0d</span>
+        </div>
+
+        <!-- Botões rápidos de +5 / +10 questões no dia -->
+        <div class="w-full grid grid-cols-3 gap-1.5 pt-1">
+          <button onclick="quickAddDailyQuestions(5)" class="py-1 rounded-lg text-[11px] font-semibold card-inset hover:opacity-80 transition">+5q</button>
+          <button onclick="quickAddDailyQuestions(10)" class="py-1 rounded-lg text-[11px] font-semibold card-inset hover:opacity-80 transition">+10q</button>
+          <button onclick="openQuestionModal()" class="py-1 rounded-lg text-[11px] font-semibold text-white hover:opacity-90 transition" style="background-color: var(--accent-teal);">+Tema</button>
+        </div>
+      </div>
+
+      <!-- WIDGET 2: CONSTÂNCIA 7 DIAS (BOLINHAS) -->
+      <div class="card-surface rounded-2xl p-3 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider" style="color: var(--text-muted);">
+          <span>📅 7 Dias</span>
+          <span id="widget-7d-sum" class="font-semibold">0q sem</span>
+        </div>
+        <div id="widget-7days-dots" class="flex items-center justify-around py-1">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+
+      <!-- WIDGET 3: TERMÔMETRO COMPACTO DAS 5 ÁREAS -->
+      <div class="card-surface rounded-2xl p-3 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider" style="color: var(--text-muted);">
+          <span>📊 5 Áreas</span>
+          <button onclick="toggleAreaWidgetWindow()" id="widget-area-window-btn" class="text-[10px] px-1.5 py-0.5 rounded card-inset font-bold">
+            Geral
+          </button>
+        </div>
+        <div id="widget-5areas-bars" class="flex flex-col gap-1.5">
+          <!-- Renderizado via JS -->
+        </div>
+      </div>
+
+      <!-- WIDGET 4: SEMÁFORO DE REVISÃO + TOP URGENTES -->
+      <div class="card-surface rounded-2xl p-3 flex flex-col gap-2">
+        <div class="text-[11px] font-bold uppercase tracking-wider" style="color: var(--text-muted);">
+          🚦 Semáforo Revisão
+        </div>
+        <div class="flex items-center justify-around text-xs font-bold py-1 card-inset rounded-xl">
+          <span title="Críticos (<70%)">🔴 <span id="sem-red">0</span></span>
+          <span title="Intermediários (70-84%)">🟡 <span id="sem-yel">0</span></span>
+          <span title="Dominados (>=85%)">🟢 <span id="sem-grn">0</span></span>
+        </div>
+        <div id="widget-urgent-list" class="flex flex-col gap-1 text-xs">
+          <!-- Top 3 mais críticos -->
+        </div>
+      </div>
+
+      <!-- WIDGET 5: COTA DIÁRIA (CHECKLIST DE ENTREGA DO DIA) -->
+      <div class="card-surface rounded-2xl p-3 flex flex-col gap-2">
+        <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider" style="color: var(--text-muted);">
+          <span>✅ Cota de Hoje</span>
+          <span id="widget-quota-count" class="font-bold">0/4</span>
+        </div>
+        <div id="widget-daily-checklist" class="flex flex-col gap-1.5 text-xs">
+          <!-- Checkboxes diários -->
+        </div>
+      </div>
+
+      <!-- WIDGET 6: ODÔMETRO ANUAL & CRONOGRAMA -->
+      <div class="card-surface rounded-2xl p-3 flex flex-col gap-2.5 text-xs">
+        <div>
+          <div class="flex justify-between font-bold mb-1">
+            <span>🏆 <span id="odo-questions-text">0</span>q</span>
+            <span id="odo-questions-pct" style="color: var(--text-muted);">0% de 18k</span>
+          </div>
+          <div class="w-full h-1.5 rounded-full overflow-hidden bg-black/10 dark:bg-white/10">
+            <div id="odo-questions-bar" class="h-full bg-purple-500 rounded-full transition-all" style="width: 0%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex justify-between font-bold mb-1">
+            <span>📚 <span id="odo-topics-text">0/414</span></span>
+            <span id="odo-topics-pct" style="color: var(--text-muted);">0%</span>
+          </div>
+          <div class="w-full h-1.5 rounded-full overflow-hidden bg-black/10 dark:bg-white/10">
+            <div id="odo-topics-bar" class="h-full bg-teal-500 rounded-full transition-all" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ÁREA PRINCIPAL (CONTEÚDO DAS ABAS) -->
+    <main class="flex-1 min-w-0 flex flex-col gap-4">
+
+      <!-- ========================================================== -->
+      <!-- ABA 1: PAINEL & QUESTÕES (ESTILO FIEL AO OBSIDIAN DA USUÁRIA) -->
+      <!-- ========================================================== -->
+      <section id="tab-questoes" class="flex flex-col gap-4">
+        
+        <!-- BARRA SUPERIOR DE RESUMO (IDÊNTICA AO PRINT DO PAINEL DE DESEMPENHO) -->
+        <div class="card-surface rounded-2xl px-6 py-4 flex flex-wrap items-center justify-around gap-4 text-sm sm:text-base font-bold">
+          <div class="flex items-center gap-2">
+            <span>📝</span>
+            <span>Total Feitas: <span id="top-total-feitas" class="font-extrabold">0</span></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span>🎯</span>
+            <span>Acertos: <span id="top-total-acertos" class="font-extrabold">0 (0%)</span></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span>⚠️</span>
+            <span>Temas Atrasados: <span id="top-temas-atrasados" class="font-extrabold text-amber-600 dark:text-amber-400">0</span></span>
+          </div>
+        </div>
+
+        <!-- BARRA DE FILTROS E BUSCA DA TABELA DE QUESTÕES -->
+        <div class="card-surface rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2 flex-1">
+            <input type="text" id="q-search-input" oninput="renderQuestionsTable()" placeholder="🔍 Buscar matéria ou subramo (ex: Epilepsia, Arritmias, Trauma)..." class="input-surface px-3 py-1.5 rounded-xl text-xs sm:text-sm flex-1 min-w-[210px]" />
+            
+            <select id="q-area-filter" onchange="renderQuestionsTable()" class="input-surface px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium">
+              <option value="ALL">Todas as Grandes Áreas</option>
+              <option value="Clínica Médica">🩺 Clínica Médica</option>
+              <option value="Cirurgia Geral">🔪 Cirurgia Geral</option>
+              <option value="Ginecologia e Obstetrícia">🤰 Ginecologia e Obstetrícia</option>
+              <option value="Pediatria">🧸 Pediatria</option>
+              <option value="Medicina Preventiva">🛡️ Medicina Preventiva</option>
+              <option value="Sem Matriz">📦 Ainda fora da Matriz</option>
+            </select>
+
+            <select id="q-status-filter" onchange="renderQuestionsTable()" class="input-surface px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium">
+              <option value="ALL">Todos os Status</option>
+              <option value="OVERDUE">⚠️ Atrasados para Revisão</option>
+              <option value="RED">🔴 Críticos (&lt;70%)</option>
+              <option value="YEL">🟡 Intermediários (70–84%)</option>
+              <option value="GRN">🟢 Dominados (&ge;85%)</option>
+            </select>
+
+            <select id="q-sort-filter" onchange="renderQuestionsTable()" class="input-surface px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium">
+              <option value="DATE_DESC">Ordem: Check mais recente</option>
+              <option value="REV_ASC">Ordem: Revisão mais urgente</option>
+              <option value="PCT_ASC">Ordem: Menor % de acerto</option>
+              <option value="TOTAL_DESC">Ordem: Mais questões feitas</option>
+              <option value="NAME_ASC">Ordem: Alfabética (A-Z)</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="openSubbranchManagerModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold card-inset hover:opacity-80 transition flex items-center gap-1">
+              <span>🌿</span> <span>Criar Subramo / Realocar</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- TABELA "AMOSTRA VISUAL DE QUESTÕES FEITAS" -->
+        <div class="card-surface rounded-2xl overflow-hidden">
+          <div class="px-5 py-3.5 border-b flex flex-wrap items-center justify-between gap-2" style="border-color: var(--border-color);">
+            <div class="flex items-center gap-2">
+              <span class="text-base">📊</span>
+              <h2 class="font-bold text-sm sm:text-base">Amostra visual de questões feitas</h2>
+              <span class="text-xs px-2 py-0.5 rounded-full card-inset font-semibold" id="q-table-count-badge">0 matérias</span>
+            </div>
+            <div class="text-xs" style="color: var(--text-muted);">
+              Subramos (<code>↳</code>) somam automaticamente na linha do tema-pai sem duplicar o total geral.
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr class="border-b-2" style="border-color: var(--text-main);">
+                  <th class="py-3 px-4 font-bold">Matéria <span id="th-materia-count" class="font-normal opacity-75">(0)</span></th>
+                  <th class="py-3 px-3 font-bold">Grande Área / Ramo</th>
+                  <th class="py-3 px-3 font-bold">Questões<br><span class="text-[11px] font-semibold opacity-75">(Total)</span></th>
+                  <th class="py-3 px-3 font-bold">Acertos<br><span class="text-[11px] font-semibold opacity-75">(Geral)</span></th>
+                  <th class="py-3 px-3 font-bold w-36">Visual</th>
+                  <th class="py-3 px-3 font-bold">Data do<br><span class="text-[11px] font-semibold opacity-75">Check</span></th>
+                  <th class="py-3 px-3 font-bold">Acertos<br><span class="text-[11px] font-semibold opacity-75">(Recente)</span></th>
+                  <th class="py-3 px-3 font-bold">Próxima<br><span class="text-[11px] font-semibold opacity-75">Revisão</span></th>
+                  <th class="py-3 px-4 font-bold text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="questions-tbody">
+                <!-- Preenchido via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- ABA 2: CRONOGRAMA MEDCOF (414 TÓPICOS EM ÁRVORE + 26 BLOCOS) -->
+      <!-- ========================================================== -->
+      <section id="tab-cronograma" class="hidden flex-col gap-4">
+        
+        <!-- Filtros do Cronograma -->
+        <div class="card-surface rounded-2xl p-4 flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="font-bold text-base sm:text-lg">📚 Banco de Dados — Cronograma Extensivo MedCof (26 Blocos)</h2>
+              <p class="text-xs" style="color: var(--text-muted);">
+                Marque <b class="text-amber-600 dark:text-amber-400">🟡 Bagagem Antiga</b> para o que você já viu antes (só revisar) ou <b class="text-emerald-600 dark:text-emerald-400">✅ Concluído</b> para avanço novo.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openNewTopicModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-white transition" style="background-color: var(--accent-teal);">
+                ➕ Novo Tópico / Subramo
+              </button>
+            </div>
+          </div>
+
+          <!-- Pílulas de Grande Área -->
+          <div class="flex flex-wrap items-center gap-1.5 pt-1" id="sched-area-pills">
+            <button onclick="setScheduleAreaFilter('ALL')" data-area="ALL" class="sched-area-pill px-3 py-1.5 rounded-xl text-xs font-bold text-white" style="background-color: var(--accent-teal);">Todas (414)</button>
+            <button onclick="setScheduleAreaFilter('Clínica Médica')" data-area="Clínica Médica" class="sched-area-pill px-3 py-1.5 rounded-xl text-xs font-semibold card-inset">🩺 Clínica Médica</button>
+            <button onclick="setScheduleAreaFilter('Cirurgia Geral')" data-area="Cirurgia Geral" class="sched-area-pill px-3 py-1.5 rounded-xl text-xs font-semibold card-inset">🔪 Cirurgia Geral</button>
+            <button onclick="setScheduleAreaFilter('Ginecologia e Obstetrícia')" data-area="Ginecologia e Obstetrícia" class="sched-area-pill px-3 py-1.5 rounded-xl text-xs font-semibold card-inset">🤰 G.O.</button>
+            <button onclick="setScheduleAreaFilter('Pediatria')" data-area="Pediatria" class="sched-area-pill px-3 py-1.5 rounded-xl text-xs font-semibold card-inset">🧸 Pediatria</button>
+            <button onclick="setScheduleAreaFilter('Medicina Preventiva')" data-area="Medicina Preventiva" class="sched-area-pill px-3 py-1.5 rounded-xl text-xs font-semibold card-inset">🛡️ Preventiva</button>
+          </div>
+
+          <!-- Filtros secundários: Busca, Bloco, Prioridade, Status -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-1">
+            <input type="text" id="sched-search" oninput="renderScheduleView()" placeholder="🔍 Buscar aula, especialidade ou subtema..." class="input-surface px-3 py-1.5 rounded-xl text-xs sm:text-sm" />
+
+            <select id="sched-block-filter" onchange="renderScheduleView()" class="input-surface px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium">
+              <option value="ALL">📦 Todos os 26 Blocos</option>
+              <!-- Preenchido via JS de Bloco 01 a Bloco 26 -->
+            </select>
+
+            <select id="sched-prio-filter" onchange="renderScheduleView()" class="input-surface px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium">
+              <option value="ALL">⭐ Todas as Prioridades</option>
+              <option value="PARETO">🔥 Núcleo Pareto (💎 Diamante + ▲▲▲ Alta)</option>
+              <option value="Diamante">💎 Apenas Diamante</option>
+              <option value="Alta">▲▲▲ Apenas Alta</option>
+              <option value="Média">▲▲ Apenas Média</option>
+              <option value="Baixa">▲ Apenas Baixa</option>
+              <option value="Bônus">🎁 Apenas Bônus</option>
+            </select>
+
+            <select id="sched-status-filter" onchange="renderScheduleView()" class="input-surface px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium">
+              <option value="ALL">📋 Todos os Estados</option>
+              <option value="pending">⬜ Pendentes (Faltam ver)</option>
+              <option value="bagagem">🟡 Bagagem Antiga (Só Revisar)</option>
+              <option value="done">✅ Concluídos (Avanço Novo)</option>
+              <option value="any_seen">☑️ Todos já vistos (Bagagem + Novo)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Lista Hierárquica do Cronograma -->
+        <div id="schedule-tree-container" class="flex flex-col gap-4">
+          <!-- Renderizado via JS -->
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- ABA 3: ESTATÍSTICAS DO EDITAL & RECICLAGEM DA BAGAGEM       -->
+      <!-- ========================================================== -->
+      <section id="tab-estatisticas" class="hidden flex-col gap-4">
+        
+        <!-- 4 Cards KPI do Edital -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5" id="stats-kpi-cards">
+          <!-- Renderizado via JS -->
+        </div>
+
+        <!-- Gráfico Empilhado das 5 Grandes Áreas -->
+        <div class="card-surface rounded-2xl p-5 flex flex-col gap-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h3 class="font-bold text-base">📊 Cobertura por Grande Área (🟢 Avanço Novo vs. 🟡 Bagagem Antiga vs. ⬜ Pendente)</h3>
+            <div class="flex items-center gap-4 text-xs" style="color: var(--text-muted);">
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span> Concluído (Novo)</span>
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-amber-500 inline-block"></span> Bagagem Antiga (Só Revisar)</span>
+              <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-sm bg-black/15 dark:bg-white/15 inline-block"></span> Falta Ver</span>
+            </div>
+          </div>
+          <div id="stats-areas-bars" class="flex flex-col gap-3.5">
+            <!-- Renderizado via JS -->
+          </div>
+        </div>
+
+        <!-- Duas Colunas: Cobertura por Prioridade (Pareto) + Progresso por Especialidade -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div class="card-surface rounded-2xl p-5 flex flex-col gap-3">
+            <h3 class="font-bold text-base">💎 Raio-X por Nível de Importância (Filtro de Pareto)</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs sm:text-sm border-collapse">
+                <thead>
+                  <tr class="border-b" style="border-color: var(--border-color);">
+                    <th class="py-2">Prioridade</th>
+                    <th class="py-2">Total</th>
+                    <th class="py-2">🟡 Bagagem</th>
+                    <th class="py-2">🟢 Novo</th>
+                    <th class="py-2">📌 Faltam</th>
+                    <th class="py-2">% Visto</th>
+                  </tr>
+                </thead>
+                <tbody id="stats-prio-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Fila de Reciclagem da Bagagem Antiga -->
+          <div class="card-surface rounded-2xl p-5 flex flex-col gap-3">
+            <div>
+              <h3 class="font-bold text-base">♻️ Fila de Reciclagem da Bagagem Antiga</h3>
+              <p class="text-xs" style="color: var(--text-muted);">
+                Matérias marcadas como já vistas (🟡 Bagagem ou ✅ Concluído), priorizando as 💎/▲▲▲ que estão sem questões ou com acerto &lt;70%.
+              </p>
+            </div>
+            <div class="overflow-x-auto max-h-[320px]">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="sticky top-0 card-surface">
+                  <tr class="border-b" style="border-color: var(--border-color);">
+                    <th class="py-2 pr-2">Tópico Já Visto</th>
+                    <th class="py-2 px-2">Prioridade</th>
+                    <th class="py-2 px-2">Questões</th>
+                    <th class="py-2 pl-2 text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="stats-recycling-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela Completa por Especialidade (## Hematologia, ## Cardiologia, etc.) -->
+        <div class="card-surface rounded-2xl p-5 flex flex-col gap-3">
+          <h3 class="font-bold text-base">🩺 Progresso por Especialidade / Subárea</h3>
+          <div class="overflow-x-auto max-h-[460px]">
+            <table class="w-full text-left text-xs sm:text-sm border-collapse">
+              <thead class="sticky top-0 card-surface">
+                <tr class="border-b-2" style="border-color: var(--border-color);">
+                  <th class="py-2.5 px-3">Grande Área</th>
+                  <th class="py-2.5 px-3">Especialidade</th>
+                  <th class="py-2.5 px-3">Vistos / Total</th>
+                  <th class="py-2.5 px-3">💎/▲▲▲ Pendentes</th>
+                  <th class="py-2.5 px-3">% Coberto</th>
+                  <th class="py-2.5 px-3 w-36">Progresso</th>
+                </tr>
+              </thead>
+              <tbody id="stats-specialty-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- ABA 4: BACKUP LOCAL & INTEGRAÇÃO OBSIDIAN                  -->
+      <!-- ========================================================== -->
+      <section id="tab-backup" class="hidden flex-col gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          
+          <!-- Card 1: Backup Local JSON -->
+          <div class="card-surface rounded-2xl p-5 flex flex-col gap-4">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <h3 class="font-bold text-base">💾 Backup Completo no Computador (.JSON)</h3>
+                <p class="text-xs mt-1" style="color: var(--text-muted);">
+                  Seus dados ficam salvos automaticamente no armazenamento deste navegador (<code>localStorage</code>). Use os botões abaixo para guardar uma cópia de segurança em arquivo ou transferir para outro dispositivo.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+              <button onclick="exportBackupJSON()" class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white shadow-sm hover:opacity-95 transition flex items-center gap-2" style="background-color: var(--accent-teal);">
+                <span>⬇️ Baixar Backup Completo (.json)</span>
+              </button>
+
+              <label class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold card-inset hover:opacity-80 transition flex items-center gap-2 cursor-pointer">
+                <span>📂 Carregar Arquivo de Backup (.json)</span>
+                <input type="file" accept=".json" class="hidden" onchange="importBackupJSON(event)" />
+              </label>
+            </div>
+
+            <div class="border-t pt-3 mt-1 flex flex-wrap items-center justify-between gap-2 text-xs" style="border-color: var(--border-color); color: var(--text-muted);">
+              <span>Deseja limpar os dados de demonstração ou reiniciar contadores?</span>
+              <button onclick="openResetConfirmModal()" class="text-red-600 dark:text-red-400 font-semibold hover:underline">
+                🗑️ Opções de Limpeza / Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Card 2: Importador Inteligente do Obsidian -->
+          <div class="card-surface rounded-2xl p-5 flex flex-col gap-3">
+            <h3 class="font-bold text-base">📥 Importar direto do seu Obsidian (qlog ou Checklist)</h3>
+            <p class="text-xs" style="color: var(--text-muted);">
+              Cole abaixo linhas de questões no formato <code>[qlog:: YYYY-MM-DD | Macro | Área | Tema | Feitas | Certas | Score]</code> ou linhas de checklist <code>- [x] Nome da Aula</code> para importar tudo de uma vez:
+            </p>
+            <textarea id="obsidian-import-textarea" rows="4" placeholder="Exemplo:&#10;- 📁 [qlog:: 2026-11-09 | Clínica Médica | Neurologia | Epilepsia | 15 | 11 | 5]&#10;- [x] Trauma Abdominal | 💎 Diamante | Bloco 03" class="input-surface w-full rounded-xl p-3 text-xs font-mono"></textarea>
+            <div class="flex justify-end">
+              <button onclick="importFromObsidianText()" class="px-4 py-2 rounded-xl text-xs font-bold text-white transition" style="background-color: var(--accent-terracotta);">
+                ⚡ Processar e Importar Texto
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Card 3: Exportar de volta para Markdown do Obsidian -->
+        <div class="card-surface rounded-2xl p-5 flex flex-col gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="font-bold text-base">📤 Exportar em Formato Markdown para o Obsidian</h3>
+              <p class="text-xs" style="color: var(--text-muted);">
+                Gere a qualquer momento a sua lista de <code>[qlog:: ...]</code> ou o seu checklist <code>Banco_Cronograma_MedCof.md</code> atualizado para colar no Obsidian.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="generateObsidianExport('qlog')" class="px-3 py-1.5 rounded-xl text-xs font-semibold card-inset hover:opacity-80">Gerar Logs [qlog::]</button>
+              <button onclick="generateObsidianExport('matriz')" class="px-3 py-1.5 rounded-xl text-xs font-semibold card-inset hover:opacity-80">Gerar 📚 Matriz de Questões</button>
+              <button onclick="generateObsidianExport('checklist')" class="px-3 py-1.5 rounded-xl text-xs font-semibold card-inset hover:opacity-80">Gerar Checklist MedCof Completo</button>
+              <button onclick="copyExportTextarea()" class="px-3 py-1.5 rounded-xl text-xs font-bold text-white" style="background-color: var(--accent-teal);">📋 Copiar Markdown</button>
+            </div>
+          </div>
+          <textarea id="obsidian-export-textarea" rows="8" readonly placeholder="Clique em um dos botões acima para gerar o código Markdown..." class="input-surface w-full rounded-xl p-3 text-xs font-mono"></textarea>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 1: REGISTRAR BATERIA DE QUESTÕES (COM SUPORTE A SUBRAMOS)         -->
+  <!-- ====================================================================== -->
+  <div id="modal-questions" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="card-surface rounded-2xl max-w-lg w-full p-5 flex flex-col gap-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-color);">
+        <h3 class="font-bold text-base flex items-center gap-2">
+          <span>🎯</span> <span>Registrar Bateria de Questões</span>
+        </h3>
+        <button onclick="closeQuestionModal()" class="text-sm px-2 py-1 rounded-lg card-inset">✕</button>
+      </div>
+
+      <div class="flex flex-col gap-3 text-xs sm:text-sm">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold mb-1 text-xs">1. Grande Área</label>
+            <select id="mq-macro" onchange="updateQuestionModalTopics()" class="input-surface w-full px-3 py-2 rounded-xl">
+              <option value="Clínica Médica">Clínica Médica</option>
+              <option value="Cirurgia Geral">Cirurgia Geral</option>
+              <option value="Ginecologia e Obstetrícia">Ginecologia e Obstetrícia</option>
+              <option value="Pediatria">Pediatria</option>
+              <option value="Medicina Preventiva">Medicina Preventiva</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-xs">2. Data da Bateria</label>
+            <input type="date" id="mq-date" class="input-surface w-full px-3 py-2 rounded-xl" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 text-xs">3. Matéria / Tema Principal (escolha da lista ou digite um novo)</label>
+          <input type="text" id="mq-topic" list="mq-topics-datalist" placeholder="Ex: Arritmias, Princípios de Ventilação Mecânica, Epilepsia..." class="input-surface w-full px-3 py-2 rounded-xl" />
+          <datalist id="mq-topics-datalist"></datalist>
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1 text-xs">
+            4. Subramo Opcional <span class="font-normal opacity-75">(se preenchido, soma automaticamente nas estatísticas do Tema Principal acima)</span>
+          </label>
+          <input type="text" id="mq-subtopic" placeholder="Opcional — Ex: Bradiarritmias, Desmame de VM, Assincronias..." class="input-surface w-full px-3 py-2 rounded-xl" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="block font-semibold mb-1 text-xs">📝 Questões FEITAS</label>
+            <input type="number" id="mq-feitas" min="1" placeholder="Ex: 15" oninput="updateModalPreviewPct()" class="input-surface w-full px-3 py-2 rounded-xl font-bold text-base" />
+          </div>
+          <div>
+            <label class="block font-semibold mb-1 text-xs">🎯 ACERTOS</label>
+            <input type="number" id="mq-certas" min="0" placeholder="Ex: 11" oninput="updateModalPreviewPct()" class="input-surface w-full px-3 py-2 rounded-xl font-bold text-base" />
+          </div>
+        </div>
+
+        <div id="mq-preview-box" class="card-inset rounded-xl p-3 text-xs flex items-center justify-between">
+          <span>Aproveitamento da sessão: <b id="mq-preview-pct">--%</b></span>
+          <span id="mq-preview-rev">Próxima revisão: --</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2 border-t" style="border-color: var(--border-color);">
+        <button onclick="closeQuestionModal()" class="px-4 py-2 rounded-xl text-xs font-semibold card-inset">Cancelar</button>
+        <button onclick="saveQuestionSession()" class="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold text-white shadow-sm" style="background-color: var(--accent-teal);">
+          ✓ Salvar Registro
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 2: CRIAR SUBRAMO OU REALOCAR MATÉRIA NA MATRIZ                    -->
+  <!-- ====================================================================== -->
+  <div id="modal-subbranch" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="card-surface rounded-2xl max-w-md w-full p-5 flex flex-col gap-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b pb-3" style="border-color: var(--border-color);">
+        <h3 class="font-bold text-base">🌿 Ramificar ou Realocar Matéria</h3>
+        <button onclick="closeSubbranchManagerModal()" class="text-sm px-2 py-1 rounded-lg card-inset">✕</button>
+      </div>
+      <p class="text-xs" style="color: var(--text-muted);">
+        Vincule qualquer matéria (ex: <b>Bradiarritmias</b>) como subramo de um tema-pai (ex: <b>Arritmias</b>) ou aloque uma matéria antiga em sua Grande Área correta. Todas as questões feitas no subramo serão somadas automaticamente no tema-pai!
+      </p>
+      <div class="flex flex-col gap-3 text-xs sm:text-sm">
+        <div>
+          <label class="block font-semibold mb-1 text-xs">Matéria / Subramo</label>
+          <input type="text" id="ms-child" list="mq-topics-datalist" placeholder="Ex: Bradiarritmias ou Desmame de VM" class="input-surface w-full px-3 py-2 rounded-xl" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1 text-xs">Tema-Pai (deixe em branco se for tema principal)</label>
+          <input type="text" id="ms-parent" list="mq-topics-datalist" placeholder="Ex: Arritmias ou Princípios de Ventilação Mecânica" class="input-surface w-full px-3 py-2 rounded-xl" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1 text-xs">Grande Área</label>
+          <select id="ms-macro" class="input-surface w-full px-3 py-2 rounded-xl">
+            <option value="Clínica Médica">Clínica Médica</option>
+            <option value="Cirurgia Geral">Cirurgia Geral</option>
+            <option value="Ginecologia e Obstetrícia">Ginecologia e Obstetrícia</option>
+            <option value="Pediatria">Pediatria</option>
+            <option value="Medicina Preventiva">Medicina Preventiva</option>
+          </select>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2 border-t" style="border-color: var(--border-color);">
+        <button onclick="closeSubbranchManagerModal()" class="px-4 py-2 rounded-xl text-xs font-semibold card-inset">Cancelar</button>
+        <button onclick="saveSubbranchRelation()" class="px-4 py-2 rounded-xl text-xs font-bold text-white" style="background-color: var(--accent-teal);">Salvar Vínculo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 3: AJUSTAR META DIÁRIA OU QUESTÕES AVULSAS DE HOJE               -->
+  <!-- ====================================================================== -->
+  <div id="modal-daily-goal" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="card-surface rounded-2xl max-w-sm w-full p-5 flex flex-col gap-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--border-color);">
+        <h3 class="font-bold text-sm">🎯 Ajustar Meta & Contador de Hoje</h3>
+        <button onclick="closeDailyGoalAdjustModal()" class="text-xs px-2 py-1 rounded card-inset">✕</button>
+      </div>
+      <div class="flex flex-col gap-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1">Meta Diária de Questões (Padrão: 40)</label>
+          <input type="number" id="mdg-target" min="5" max="300" class="input-surface w-full px-3 py-2 rounded-xl font-bold" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Total de Questões Feitas Hoje (equivalente à propriedade <code>quantidade de questõess</code>)</label>
+          <input type="number" id="mdg-today-manual" min="0" class="input-surface w-full px-3 py-2 rounded-xl font-bold" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeDailyGoalAdjustModal()" class="px-3 py-1.5 rounded-xl text-xs card-inset">Cancelar</button>
+        <button onclick="saveDailyGoalAdjust()" class="px-4 py-1.5 rounded-xl text-xs font-bold text-white" style="background-color: var(--accent-teal);">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 4: ADICIONAR NOVO TÓPICO NO CRONOGRAMA                           -->
+  <!-- ====================================================================== -->
+  <div id="modal-new-sched-topic" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="card-surface rounded-2xl max-w-md w-full p-5 flex flex-col gap-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--border-color);">
+        <h3 class="font-bold text-sm">➕ Adicionar Tópico / Subramo ao Cronograma</h3>
+        <button onclick="closeNewTopicModal()" class="text-xs px-2 py-1 rounded card-inset">✕</button>
+      </div>
+      <div class="flex flex-col gap-3 text-xs">
+        <div>
+          <label class="block font-semibold mb-1">Grande Área</label>
+          <select id="mnt-area" class="input-surface w-full px-3 py-2 rounded-xl">
+            <option value="Clínica Médica">Clínica Médica</option>
+            <option value="Cirurgia Geral">Cirurgia Geral</option>
+            <option value="Ginecologia e Obstetrícia">Ginecologia e Obstetrícia</option>
+            <option value="Pediatria">Pediatria</option>
+            <option value="Medicina Preventiva">Medicina Preventiva</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Especialidade (ex: Cardiologia, Trauma, Terapia Intensiva)</label>
+          <input type="text" id="mnt-esp" placeholder="Ex: Terapia Intensiva e Emergências Clínicas" class="input-surface w-full px-3 py-2 rounded-xl" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Subtema / Grupo</label>
+          <input type="text" id="mnt-sub" placeholder="Ex: Via Aérea e Ventilação Mecânica" class="input-surface w-full px-3 py-2 rounded-xl" />
+        </div>
+        <div>
+          <label class="block font-semibold mb-1">Nome da Aula ou Subramo</label>
+          <input type="text" id="mnt-title" placeholder="Ex: Ventilação Mecânica › Desmame Ventilatório" class="input-surface w-full px-3 py-2 rounded-xl" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold mb-1">Prioridade</label>
+            <select id="mnt-prio" class="input-surface w-full px-3 py-2 rounded-xl">
+              <option value="💎 Diamante">💎 Diamante</option>
+              <option value="▲▲▲ Alta">▲▲▲ Alta</option>
+              <option value="▲▲ Média">▲▲ Média</option>
+              <option value="▲ Baixa">▲ Baixa</option>
+              <option value="🎁 Bônus">🎁 Bônus</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Bloco</label>
+            <input type="text" id="mnt-block" value="Bloco 15" class="input-surface w-full px-3 py-2 rounded-xl" />
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeNewTopicModal()" class="px-3 py-1.5 rounded-xl text-xs card-inset">Cancelar</button>
+        <button onclick="saveNewScheduleTopic()" class="px-4 py-1.5 rounded-xl text-xs font-bold text-white" style="background-color: var(--accent-teal);">Adicionar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 5: OPÇÕES DE RESET E LIMPEZA (SEM USAR CONFIRM NATIVO)           -->
+  <!-- ====================================================================== -->
+  <div id="modal-reset" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="card-surface rounded-2xl max-w-md w-full p-5 flex flex-col gap-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--border-color);">
+        <h3 class="font-bold text-sm text-red-600 dark:text-red-400">⚠️ Opções de Limpeza de Dados</h3>
+        <button onclick="closeResetConfirmModal()" class="text-xs px-2 py-1 rounded card-inset">✕</button>
+      </div>
+      <p class="text-xs" style="color: var(--text-muted);">
+        Escolha abaixo o que deseja fazer. Recomendamos baixar um Backup (<code>.json</code>) antes de limpar.
+      </p>
+      <div class="flex flex-col gap-2.5 text-xs">
+        <button onclick="resetOnlyQuestions()" class="w-full py-2.5 px-4 rounded-xl font-semibold card-inset hover:bg-red-500/10 text-left flex items-center justify-between">
+          <span>🧹 Zerar apenas histórico de questões (Manter cronograma)</span>
+          <span>➔</span>
+        </button>
+        <button onclick="restoreInitialObsidianSnapshot()" class="w-full py-2.5 px-4 rounded-xl font-semibold card-inset hover:bg-amber-500/10 text-left flex items-center justify-between">
+          <span>🔄 Restaurar dados iniciais do seu Obsidian (2.100 questões)</span>
+          <span>➔</span>
+        </button>
+      </div>
+      <div class="flex justify-end pt-2">
+        <button onclick="closeResetConfirmModal()" class="px-4 py-1.5 rounded-xl text-xs font-semibold card-inset">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST DE NOTIFICAÇÃO -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <script>
+    // =========================================================================
+    // 1. BANCO DE DADOS COMPLETO DO CRONOGRAMA MEDCOF (414 TÓPICOS - 26 BLOCOS)
+    // =========================================================================
+    const RAW_MEDCOF_DATA = [
+      // CLÍNICA MÉDICA
+      ["Clínica Médica","Hematologia","Hemograma e Anemias",[
+        ["Avaliação Global do Hemograma","▲▲▲ Alta","Bloco 01"],
+        ["Anemias Hipoproliferativas I","💎 Diamante","Bloco 01"],
+        ["Anemias Hipoproliferativas II","▲▲▲ Alta","Bloco 01"],
+        ["Anemias Hemolíticas","▲▲▲ Alta","Bloco 07"]
+      ]],
+      ["Clínica Médica","Hematologia","Hemostasia e Hemoterapia",[
+        ["Coagulação e Hemostasia","▲▲ Média","Bloco 09"],
+        ["Hemoterapia","▲ Baixa","Bloco 09"]
+      ]],
+      ["Clínica Médica","Hematologia","Oncohematologia e Oncologia",[
+        ["Oncologia: emergências e cuidados paliativos","▲▲ Média","Bloco 07"],
+        ["Oncohematologia","▲▲ Média","Bloco 23"]
+      ]],
+      ["Clínica Médica","Cardiologia","Dor Torácica e Coronariopatias",[
+        ["Dor Torácica Coronariana","💎 Diamante","Bloco 05"],
+        ["Dor Torácica Não Coronariana","▲▲ Média","Bloco 05"],
+        ["Síndrome Coronariana Crônica","🎁 Bônus","Bloco 26"]
+      ]],
+      ["Clínica Médica","Cardiologia","HAS, Insuficiência Cardíaca e Valvopatias",[
+        ["HAS: Ambulatorial e Emergências","💎 Diamante","Bloco 10"],
+        ["Insuficiência Cardíaca","▲▲▲ Alta","Bloco 10"],
+        ["Doenças Valvares","▲▲ Média","Bloco 14"]
+      ]],
+      ["Clínica Médica","Cardiologia","Arritmias, Síncope e PCR",[
+        ["BLS e ACLS","▲▲▲ Alta","Bloco 10"],
+        ["Taquiarritmias - Cardiologia","💎 Diamante","Bloco 14"],
+        ["Bradiarritmias","▲▲▲ Alta","Bloco 14"],
+        ["Síncope","▲▲▲ Alta","Bloco 14"]
+      ]],
+      ["Clínica Médica","Pneumologia","Doenças Obstrutivas",[
+        ["Asma","▲▲▲ Alta","Bloco 10"],
+        ["Doença Pulmonar Obstrutiva Crônica (DPOC)","▲▲▲ Alta","Bloco 10"]
+      ]],
+      ["Clínica Médica","Pneumologia","Infecções e Pleura",[
+        ["Pneumonia: Adquirida na Comunidade","💎 Diamante","Bloco 09"],
+        ["Derrame Pleural","▲▲▲ Alta","Bloco 09"]
+      ]],
+      ["Clínica Médica","Pneumologia","TEP, Interstício e Outros",[
+        ["Tromboembolismo Pulmonar","💎 Diamante","Bloco 19"],
+        ["Distúrbios do Sono","▲ Baixa","Bloco 19"],
+        ["Doença Pulmonar Intersticial (DPI)","▲ Baixa","Bloco 19"],
+        ["Nódulo Pulmonar","▲▲ Média","Bloco 19"]
+      ]],
+      ["Clínica Médica","Terapia Intensiva e Emergências","Via Aérea, VM e Choque",[
+        ["Reações Alérgicas","▲▲ Média","Bloco 06"],
+        ["Via aérea, intubação e Ventilação Não Invasiva (VNI)","▲ Baixa","Bloco 15"],
+        ["Síndrome do Desconforto Respiratório Agudo (SDRA)","▲▲▲ Alta","Bloco 15"],
+        ["Ventilação Mecânica","▲ Baixa","Bloco 15"],
+        ["Choque","▲▲▲ Alta","Bloco 15"],
+        ["Drogas Vasoativas e Sedoanalgesia","▲ Baixa","Bloco 15"],
+        ["Intoxicações Exógenas","💎 Diamante","Bloco 17"]
+      ]],
+      ["Clínica Médica","Nefrologia","Equilíbrio Ácido-Básico e Eletrólitos",[
+        ["Gasometria Arterial","▲▲▲ Alta","Bloco 06"],
+        ["Distúrbios do Sódio","▲▲▲ Alta","Bloco 06"],
+        ["Distúrbios do Potássio","▲▲▲ Alta","Bloco 06"],
+        ["Outro Distúrbios Hidroeletrolíticos (Cálcio, Fósforo e Magnésio)","▲▲ Média","Bloco 20"]
+      ]],
+      ["Clínica Médica","Nefrologia","IRA, DRC, Glomerulopatias e ITU",[
+        ["Injúria Renal","💎 Diamante","Bloco 16"],
+        ["Glomerulopatias","▲▲▲ Alta","Bloco 17"],
+        ["Infecção do Trato Urinário (ITU)","💎 Diamante","Bloco 20"],
+        ["Doença Renal Crônica","▲▲ Média","Bloco 20"]
+      ]],
+      ["Clínica Médica","Gastroenterologia","Esôfago, Estômago e Intestinos",[
+        ["Dispepsia e DRGE","▲▲▲ Alta","Bloco 03"],
+        ["Úlcera péptica, H. pylori, Gastrite Atrófica","▲▲▲ Alta","Bloco 03"],
+        ["Diarreia Agudas e Colite Pseudomembranosa","▲▲▲ Alta","Bloco 16"],
+        ["Diarreias Crônicas","▲ Baixa","Bloco 16"],
+        ["Doença Inflamatória Intestinal (DII)","▲▲ Média","Bloco 16"],
+        ["Disfagia, Esofagite Eosinofílica e Acalasias","▲ Baixa","Bloco 19"]
+      ]],
+      ["Clínica Médica","Hepatologia","Hepatopatias e Cirrose",[
+        ["Avaliação de Enzimas Hepáticas, DHEM e Hepatite alcóolica","▲ Baixa","Bloco 08"],
+        ["Doenças hepáticas: CBP, CEP, HAI e Doença de Wilson","🎁 Bônus","Bloco 08"],
+        ["Cirrose Hepática I","💎 Diamante","Bloco 09"],
+        ["Cirrose Hepática II","▲▲▲ Alta","Bloco 09"],
+        ["Hepatites Virais","💎 Diamante","Bloco 22"]
+      ]],
+      ["Clínica Médica","Endocrinologia","Diabetes, Obesidade e Dislipidemias",[
+        ["Diabetes: Classificação, Diagnóstico e Meta Terapêutica","▲▲▲ Alta","Bloco 11"],
+        ["Diabetes: Tratamento","💎 Diamante","Bloco 11"],
+        ["Emergências Hiperglicêmicas (CAD e EHH)","▲▲▲ Alta","Bloco 11"],
+        ["Hiperglicemia Hospitalar","🎁 Bônus","Bloco 11"],
+        ["Síndrome Metabólica e Obesidade","▲▲▲ Alta","Bloco 12"],
+        ["Dislipidemias","💎 Diamante","Bloco 12"]
+      ]],
+      ["Clínica Médica","Endocrinologia","Tireoide, Adrenal e Hipófise",[
+        ["Fisiologia da Tireoide e Hipotireoidismo","💎 Diamante","Bloco 18"],
+        ["Hipertireoidismo e Tireoidite","▲▲▲ Alta","Bloco 18"],
+        ["Adrenal","▲▲ Média","Bloco 19"],
+        ["Síndrome de Cushing","▲▲ Média","Bloco 19"],
+        ["Hiperaldosteronismo Primário","▲▲ Média","Bloco 23"],
+        ["Feocromocitoma","▲ Baixa","Bloco 23"],
+        ["Prolactinomas","▲ Baixa","Bloco 23"]
+      ]],
+      ["Clínica Médica","Infectologia","Sífilis, Antibióticos, TB, HIV e Arboviroses",[
+        ["Sífilis","💎 Diamante","Bloco 03"],
+        ["Antibióticos","💎 Diamante","Bloco 07"],
+        ["Tuberculose: clínica e diagnóstico","💎 Diamante","Bloco 13"],
+        ["Tuberculose: tratamento","▲▲▲ Alta","Bloco 13"],
+        ["Infecções Nosocomiais","▲ Baixa","Bloco 15"],
+        ["Vacinação","▲ Baixa","Bloco 15"],
+        ["Doenças Negligenciadas","▲▲ Média","Bloco 16"],
+        ["HIV e Doenças Oportunistas","▲▲▲ Alta","Bloco 18"],
+        ["Doenças Virais e Pandêmicas","▲▲▲ Alta","Bloco 22"],
+        ["Arboviroses - Clínica Médica","💎 Diamante","Bloco 22"],
+        ["Icterícias febris e Febre Maculosa","▲▲▲ Alta","Bloco 22"]
+      ]],
+      ["Clínica Médica","Neurologia","AVC, Cefaleias, Meningites e Epilepsia",[
+        ["Neurovascular I: AIT e AVCi","💎 Diamante","Bloco 02"],
+        ["Neurovascular II: HSA e AVCh","▲▲▲ Alta","Bloco 02"],
+        ["Cefaleias","▲▲▲ Alta","Bloco 08"],
+        ["Meningites & Encefalites","▲▲▲ Alta","Bloco 14"],
+        ["Doenças Neuromusculares e Parkinson","▲ Baixa","Bloco 14"],
+        ["Epilepsia","▲ Baixa","Bloco 18"],
+        ["Esclerose Múltipla (EM) e Neuromielite óptica","🎁 Bônus","Bloco 18"]
+      ]],
+      ["Clínica Médica","Reumatologia","Artrites, Colagenoses e Vasculites",[
+        ["Introdução às Artrites e Artrite Reumatoide (AR)","▲▲▲ Alta","Bloco 04"],
+        ["Espondiloartrites","▲▲▲ Alta","Bloco 04"],
+        ["Artrites Microcristalinas (Gota e CPPD)","▲▲ Média","Bloco 04"],
+        ["Osteoartrite","▲▲ Média","Bloco 04"],
+        ["Fibromialgia","▲▲ Média","Bloco 04"],
+        ["Vasculites","▲▲ Média","Bloco 13"],
+        ["Lúpus Eritematoso Sistêmico","💎 Diamante","Bloco 17"],
+        ["Osteoporose","▲▲ Média","Bloco 17"],
+        ["Esclerose Sistêmica","▲ Baixa","Bloco 17"],
+        ["Doença de Sjögren","▲ Baixa","Bloco 17"],
+        ["Miopatias Autoimunes Sistêmicas","▲ Baixa","Bloco 17"]
+      ]],
+      ["Clínica Médica","Geriatria e Especialidades","Geriatria, Otorrino, Oftalmo e Dermato",[
+        ["Avaliação Geriátrica Ampla","▲▲▲ Alta","Bloco 08"],
+        ["Grandes Síndromes Geriátricas","▲▲ Média","Bloco 08"],
+        ["Depressão e Delirium no Idoso","▲▲▲ Alta","Bloco 21"],
+        ["Insuficiência Cognitiva: Demências","💎 Diamante","Bloco 21"],
+        ["Dermatologia","🎁 Bônus","Bloco 24"],
+        ["Otologia I","▲▲▲ Alta","Bloco 25"],
+        ["Otologia II","▲▲ Média","Bloco 25"],
+        ["Oftalmologia para o Generalista - parte I","▲▲ Média","Bloco 25"],
+        ["Rinologia","▲▲▲ Alta","Bloco 26"],
+        ["Bucofaringolaringologia I","▲▲ Média","Bloco 26"],
+        ["Bucofaringolaringologia II","🎁 Bônus","Bloco 26"],
+        ["Oftalmologia para o Generalista - parte II","🎁 Bônus","Bloco 26"]
+      ]],
+
+      // CIRURGIA GERAL
+      ["Cirurgia Geral","Trauma e Queimaduras","ATLS, Tórax, Abdome, Pelve e TCE",[
+        ["Introdução ao Extensivo e Como Acertar Questões de Prova","▲▲▲ Alta","Bloco 01"],
+        ["Introdução ao Trauma e Atendimento Inicial","💎 Diamante","Bloco 01"],
+        ["Trauma: Vias Aéreas","▲▲▲ Alta","Bloco 01"],
+        ["Choque e Ressuscitação Hemostática","▲▲▲ Alta","Bloco 01"],
+        ["Trauma: Medidas Auxiliares, FAST e demais avaliações","▲ Baixa","Bloco 02"],
+        ["Trauma: Populações especiais","🎁 Bônus","Bloco 02"],
+        ["Trauma de Tórax","💎 Diamante","Bloco 02"],
+        ["Trauma Abdominal","💎 Diamante","Bloco 03"],
+        ["Trauma Urológico","▲▲ Média","Bloco 03"],
+        ["Trauma de Pelve","▲▲▲ Alta","Bloco 04"],
+        ["Trauma Cranioencefálico","💎 Diamante","Bloco 04"],
+        ["Trauma Raquimedular","▲▲ Média","Bloco 04"],
+        ["Trauma Musculoesquelético","▲ Baixa","Bloco 04"],
+        ["Trauma de Pescoço","▲ Baixa","Bloco 04"],
+        ["Trauma: Encerramento","💎 Diamante","Bloco 05"],
+        ["Queimaduras","▲▲▲ Alta","Bloco 05"],
+        ["Ferimento descolante","▲ Baixa","Bloco 15"]
+      ]],
+      ["Cirurgia Geral","Abdome Agudo e Urgências","Inflamatório, Obstrutivo, Vascular e HDA",[
+        ["Abdome Agudo: Introdução","▲▲▲ Alta","Bloco 06"],
+        ["Apendicite Aguda","💎 Diamante","Bloco 06"],
+        ["Urgências da Vesícula Biliar","💎 Diamante","Bloco 07"],
+        ["Pancreatite Aguda","▲▲▲ Alta","Bloco 08"],
+        ["Diverticulite Aguda","💎 Diamante","Bloco 08"],
+        ["Abdome Agudo Obstrutivo","💎 Diamante","Bloco 09"],
+        ["Abdome Agudo Perfurativo, Vascular e Hemorrágico","▲▲▲ Alta","Bloco 09"],
+        ["Síndrome Compartimental Intra-Abdominal","▲▲ Média","Bloco 11"],
+        ["Urgências endoscópicas","💎 Diamante","Bloco 11"]
+      ]],
+      ["Cirurgia Geral","Perioperatório e Parede Abdominal","Pré/Pós-Op, Hérnias e Cicatrização",[
+        ["Cicatrização e Lesões por Pressão","▲▲ Média","Bloco 06"],
+        ["Fios de Sutura","🎁 Bônus","Bloco 06"],
+        ["Anestésicos Locais","🎁 Bônus","Bloco 06"],
+        ["Anatomia da Parede Abdominal e Hérnia Inguinal","💎 Diamante","Bloco 10"],
+        ["Hernioplastia Inguinal","▲▲ Média","Bloco 10"],
+        ["Enxertos e Retalhos","▲▲ Média","Bloco 10"],
+        ["Hérnias Incisionais e Fechamento de Parede","▲ Baixa","Bloco 11"],
+        ["Outras Hérnias","▲ Baixa","Bloco 11"],
+        ["Pré-Operatório","💎 Diamante","Bloco 12"],
+        ["REMIT e pós-operatório","💎 Diamante","Bloco 13"],
+        ["Perioperatório: Complicações gerais","▲▲▲ Alta","Bloco 13"],
+        ["Cirurgia Geral: Respiro e próximos passos","▲▲▲ Alta","Bloco 13"],
+        ["Síndrome de Fournier","💎 Diamante","Bloco 18"],
+        ["Cirurgia: Resumão/Encerramento","💎 Diamante","Bloco 20"],
+        ["Eletrocirurgia","🎁 Bônus","Bloco 21"],
+        ["Videolaparoscopia","▲▲ Média","Bloco 21"],
+        ["Nutrição perioperatória","🎁 Bônus","Bloco 21"],
+        ["Anestesiologia","🎁 Bônus","Bloco 25"],
+        ["Tromboelastograma","🎁 Bônus","Bloco 26"]
+      ]],
+      ["Cirurgia Geral","Gastrocirurgia, Bariátrica e Coloprocto","Esôfago, Estômago, Bariátrica e Cólon",[
+        ["Câncer de Esôfago","▲▲▲ Alta","Bloco 07"],
+        ["Disfagia e Acalasia","▲▲ Média","Bloco 08"],
+        ["Hérnias de Hiato","🎁 Bônus","Bloco 08"],
+        ["Câncer de Estômago","▲▲▲ Alta","Bloco 09"],
+        ["Outras Neoplasias Gástricas","🎁 Bônus","Bloco 10"],
+        ["Cirurgia Bariátrica","▲▲▲ Alta","Bloco 12"],
+        ["Câncer Colorretal e Síndromes Associadas","▲▲▲ Alta","Bloco 14"],
+        ["Doenças Orificiais e CEC de Canal Anal","▲▲▲ Alta","Bloco 14"],
+        ["Tumores do Intestino Delgado","🎁 Bônus","Bloco 22"],
+        ["Cisto pilonidal","🎁 Bônus","Bloco 23"],
+        ["Endoscopia","🎁 Bônus","Bloco 24"]
+      ]],
+      ["Cirurgia Geral","Fígado, Vias Biliares, Pâncreas e Baço","Cirurgia Hepatobiliopancreática",[
+        ["Abscesso Hepático","▲ Baixa","Bloco 08"],
+        ["Doenças da Vesícula Biliar","🎁 Bônus","Bloco 14"],
+        ["Fígado para perdidos","💎 Diamante","Bloco 15"],
+        ["Nódulos hepáticos benignos","▲▲▲ Alta","Bloco 15"],
+        ["Carcinoma hepatocelular","▲ Baixa","Bloco 16"],
+        ["Metástases hepáticas de câncer colorretal","🎁 Bônus","Bloco 17"],
+        ["Adenocarcinoma de pâncreas e tumores periampulares","▲▲▲ Alta","Bloco 17"],
+        ["Fígado e VB: Quiz","🎁 Bônus","Bloco 17"],
+        ["Neoplasias Císticas Pancreáticas","🎁 Bônus","Bloco 20"],
+        ["Pancreatite Crônica","▲ Baixa","Bloco 20"],
+        ["Pâncreas e vias biliares: Tumores Neuroendócrinos","🎁 Bônus","Bloco 21"],
+        ["Doenças cirúrgicas do Baço","🎁 Bônus","Bloco 22"]
+      ]],
+      ["Cirurgia Geral","Urologia, Vascular e Especialidades","Urologia, Vascular, CCP e Torácica",[
+        ["Escroto Agudo","▲▲▲ Alta","Bloco 05"],
+        ["Priapismo","▲ Baixa","Bloco 05"],
+        ["Uro-Oncologia","▲▲ Média","Bloco 12"],
+        ["Fraturas de face","🎁 Bônus","Bloco 13"],
+        ["Paralisia facial","🎁 Bônus","Bloco 13"],
+        ["Hiperplasia prostática benigna","▲▲▲ Alta","Bloco 13"],
+        ["Litíase Renal: Pronto-Socorro e Tratamento Cirúrgico","💎 Diamante","Bloco 16"],
+        ["Aneurisma de Aorta","▲▲ Média","Bloco 16"],
+        ["Ortopedia","▲ Baixa","Bloco 18"],
+        ["Trombose venosa profunda","▲▲ Média","Bloco 18"],
+        ["Cirurgia Torácica: Pneumotórax","🎁 Bônus","Bloco 18"],
+        ["Oncocirurgia Geral","▲ Baixa","Bloco 19"],
+        ["Isquemia de membros inferiores","▲▲ Média","Bloco 19"],
+        ["Trauma Vascular","🎁 Bônus","Bloco 20"],
+        ["Estenose Carotídea","🎁 Bônus","Bloco 20"],
+        ["Câncer de Pulmão","▲ Baixa","Bloco 20"],
+        ["Diagnósticos diferenciais das massas cervicais","▲▲▲ Alta","Bloco 21"],
+        ["Insuficiência Venosa Crônica","▲▲ Média","Bloco 21"],
+        ["Cirurgia Vascular: Síndromes Compressivas","🎁 Bônus","Bloco 21"],
+        ["CEC de Cabeça e Pescoço","▲ Baixa","Bloco 22"],
+        ["Doenças Traqueais","▲ Baixa","Bloco 22"],
+        ["Bronquiectasias e Hemoptise","🎁 Bônus","Bloco 22"],
+        ["Anomalias Congênitas em cabeça e pescoço","▲▲ Média","Bloco 23"],
+        ["Mediastino","🎁 Bônus","Bloco 23"],
+        ["Cabeça e Pescoço: Tireoide","🎁 Bônus","Bloco 24"],
+        ["Cabeça e Pescoço: Paratireoide","🎁 Bônus","Bloco 24"],
+        ["Neurocirurgia","🎁 Bônus","Bloco 24"],
+        ["Cirurgia Cardíaca","🎁 Bônus","Bloco 26"],
+        ["Câncer de Pele Não Melanoma","🎁 Bônus","Bloco 26"]
+      ]],
+
+      // GINECOLOGIA E OBSTETRÍCIA
+      ["Ginecologia e Obstetrícia","Obstetrícia: Pré-Natal, Parto e Vitalidade","Fisiologia, Parto e Puerpério",[
+        ["Modificações do Organismo Materno","▲▲▲ Alta","Bloco 01"],
+        ["Assistência ao Pré-Natal","💎 Diamante","Bloco 01"],
+        ["Ultrassonografia em Obstetrícia","▲▲ Média","Bloco 01"],
+        ["Assistência ao Parto","💎 Diamante","Bloco 04"],
+        ["Sofrimento Fetal Agudo","▲▲▲ Alta","Bloco 04"],
+        ["Avaliação de Vitalidade Fetal","💎 Diamante","Bloco 13"],
+        ["Restrição de Crescimento Intrauterino","▲▲▲ Alta","Bloco 13"],
+        ["Sofrimento Fetal Crônico","▲▲ Média","Bloco 13"],
+        ["Gemelaridade","▲▲ Média","Bloco 13"],
+        ["Hemorragia pós parto","💎 Diamante","Bloco 17"],
+        ["Puerpério","▲▲ Média","Bloco 17"],
+        ["Medicina Fetal","▲ Baixa","Bloco 24"],
+        ["Doença Hemolítica Perinatal","▲▲ Média","Bloco 25"]
+      ]],
+      ["Ginecologia e Obstetrícia","Obstetrícia: Sangramentos, DHEG e Intercorrências","Alto Risco Obstétrico",[
+        ["Infecções e Gravidez","💎 Diamante","Bloco 07"],
+        ["Rotura Prematura de Membranas Ovulares","▲▲▲ Alta","Bloco 07"],
+        ["Interrupção Legal da Gestação","▲▲ Média","Bloco 07"],
+        ["Abortamento","💎 Diamante","Bloco 08"],
+        ["Gestação Ectópica","💎 Diamante","Bloco 08"],
+        ["Doença Trofoblástica Gestacional","▲▲ Média","Bloco 08"],
+        ["Placenta Prévia","▲▲▲ Alta","Bloco 09"],
+        ["Descolamento Prematuro de Placenta","💎 Diamante","Bloco 09"],
+        ["Outros Sangramentos de Segunda Metade da Gestação","▲▲ Média","Bloco 09"],
+        ["Síndromes Hipertensivas na Gestação","💎 Diamante","Bloco 10"],
+        ["Diabetes na Gestação","💎 Diamante","Bloco 11"],
+        ["Cardiopatias na Gravidez","▲ Baixa","Bloco 14"],
+        ["Trabalho de Parto Prematuro","💎 Diamante","Bloco 16"],
+        ["Colo Curto e Incompetência Istmocervical","▲▲ Média","Bloco 16"],
+        ["Outras Intercorrências Clínicas na Gestação","▲▲ Média","Bloco 21"],
+        ["Transtornos Psiquiátricos na Gestação e Pós parto","▲ Baixa","Bloco 23"],
+        ["Trombofilias na Gestação e Puerpério","▲▲ Média","Bloco 25"]
+      ]],
+      ["Ginecologia e Obstetrícia","Ginecologia Endócrina e Reprodução","Amenorreias, SOP, Anticoncepção e Climatério",[
+        ["Fisiologia Menstrual","▲▲▲ Alta","Bloco 05"],
+        ["Amenorreia Primária","💎 Diamante","Bloco 05"],
+        ["Esteroidogênese","▲▲ Média","Bloco 05"],
+        ["Amenorreia Secundária","💎 Diamante","Bloco 06"],
+        ["Hiperprolactinemia","▲▲ Média","Bloco 06"],
+        ["Síndrome dos Ovários Policísticos","▲▲▲ Alta","Bloco 06"],
+        ["Infertilidade","▲▲▲ Alta","Bloco 11"],
+        ["Anticoncepção","💎 Diamante","Bloco 14"],
+        ["Síndrome Climatérica","💎 Diamante","Bloco 20"],
+        ["Terapia Hormonal","💎 Diamante","Bloco 20"],
+        ["Técnicas de Reprodução Assistida","▲▲ Média","Bloco 22"],
+        ["Cuidado à Saúde LGBTQIAPN+","▲▲ Média","Bloco 22"]
+      ]],
+      ["Ginecologia e Obstetrícia","Ginecologia Geral, ISTs e Uroginecologia","SUA, Endometriose, Corrimentos e Prolapso",[
+        ["Anatomia Pélvica Feminina","💎 Diamante","Bloco 02"],
+        ["Embriologia do Sistema Genital Feminino","▲▲ Média","Bloco 02"],
+        ["Malformações Mullerianas","▲▲ Média","Bloco 02"],
+        ["Corrimentos Vaginais","💎 Diamante","Bloco 03"],
+        ["Doença Inflamatória Pélvica Aguda","▲▲▲ Alta","Bloco 03"],
+        ["Úlceras Genitais","▲▲▲ Alta","Bloco 03"],
+        ["Violência Sexual","▲▲▲ Alta","Bloco 07"],
+        ["Sangramento Uterino Anormal","💎 Diamante","Bloco 10"],
+        ["Endometriose","▲▲▲ Alta","Bloco 11"],
+        ["Propedêutica em Uroginecologia","▲▲ Média","Bloco 12"],
+        ["Incontinência Urinária","💎 Diamante","Bloco 12"],
+        ["Prolapso Genital","▲▲▲ Alta","Bloco 12"],
+        ["Cirurgia Ginecológica: Princípios e Complicações","▲ Baixa","Bloco 23"],
+        ["Outras Urgências Ginecológicas","▲ Baixa","Bloco 26"]
+      ]],
+      ["Ginecologia e Obstetrícia","Mastologia e Oncologia Ginecológica","Mama, Colo, Endométrio e Ovário",[
+        ["Propedêutica Mamária","💎 Diamante","Bloco 15"],
+        ["Principais Sintomas em Mastologia","▲▲▲ Alta","Bloco 15"],
+        ["Classificação das Lesões Benignas","▲▲ Média","Bloco 15"],
+        ["Câncer de Colo de Útero - Rastreamento","💎 Diamante","Bloco 18"],
+        ["Câncer de Colo de Útero - Diagnóstico e Tratamento","💎 Diamante","Bloco 18"],
+        ["Doenças da Vulva e da Vagina","▲ Baixa","Bloco 18"],
+        ["Câncer de Mama - Rastreamento","💎 Diamante","Bloco 19"],
+        ["Câncer de Mama - Fatores de Risco e CDIS","💎 Diamante","Bloco 19"],
+        ["Câncer de Mama - Doença Invasiva","▲▲ Média","Bloco 19"],
+        ["Tumores Anexiais","▲ Baixa","Bloco 20"],
+        ["Câncer de Ovário","▲▲ Média","Bloco 20"],
+        ["Hiperplasia Endometrial","💎 Diamante","Bloco 21"],
+        ["Câncer de Endométrio","▲▲ Média","Bloco 21"]
+      ]],
+
+      // PEDIATRIA
+      ["Pediatria","Puericultura, Nutrologia e Endocrinopediatria","Aleitamento, Crescimento e Puberdade",[
+        ["Aleitamento Materno","💎 Diamante","Bloco 01"],
+        ["Alimentação Infantil","▲▲ Média","Bloco 01"],
+        ["Desenvolvimento Infantil","▲▲▲ Alta","Bloco 01"],
+        ["Alterações no Neurodesenvolvimento - TEA e TDAH","▲▲▲ Alta","Bloco 01"],
+        ["Violência Contra a Criança e o Adolescente","▲▲▲ Alta","Bloco 03"],
+        ["Crescimento e Baixa Estatura","💎 Diamante","Bloco 04"],
+        ["Obesidade e Síndrome Metabólica","▲▲ Média","Bloco 04"],
+        ["Puberdade","▲▲▲ Alta","Bloco 04"],
+        ["Desnutrição e Vitaminas","▲▲ Média","Bloco 04"],
+        ["Genética","▲▲▲ Alta","Bloco 09"],
+        ["Cetoacidose Diabética (CAD)","▲▲▲ Alta","Bloco 11"],
+        ["Pediatria Geral","▲▲ Média","Bloco 16"],
+        ["Hiperplasia Adrenal Congênita (HAC)","▲▲▲ Alta","Bloco 16"],
+        ["Hipotireoidismo","▲▲ Média","Bloco 16"],
+        ["Diferenças no Desenvolvimento Sexual","▲ Baixa","Bloco 16"],
+        ["Nutrologia em Pediatria","▲▲ Média","Bloco 16"],
+        ["Medicina do Adolescente","▲ Baixa","Bloco 22"],
+        ["Ética em Pediatria","💎 Diamante","Bloco 22"]
+      ]],
+      ["Pediatria","Neonatologia","Reanimação, Infecções Congênitas e Icterícia",[
+        ["Reanimação Neonatal","▲▲▲ Alta","Bloco 07"],
+        ["Infecções Congênitas","💎 Diamante","Bloco 07"],
+        ["Icterícia e Colestase Neonatal","▲▲▲ Alta","Bloco 07"],
+        ["Triagens Neonatais","▲▲▲ Alta","Bloco 12"],
+        ["Distúrbios Metabólicos Neonatais","▲▲ Média","Bloco 12"],
+        ["Sepse Neonatal","▲▲ Média","Bloco 18"],
+        ["Desconforto Respiratório Neonatal","💎 Diamante","Bloco 18"],
+        ["Outras Doenças Neonatais","▲ Baixa","Bloco 18"],
+        ["Nutrição do Pré-Termo","▲ Baixa","Bloco 18"]
+      ]],
+      ["Pediatria","Infectopediatria, Pneumo e Gastro","Vacinas, Exantemáticas, Pneumo e Diarreia",[
+        ["Febre sem Sinais Localizatórios","▲▲ Média","Bloco 02"],
+        ["Alergia Alimentar, Refluxo e Constipação","💎 Diamante","Bloco 03"],
+        ["Diarreia Crônica e Doenças Funcionais","▲▲ Média","Bloco 03"],
+        ["Diarreia Aguda","💎 Diamante","Bloco 05"],
+        ["Infecções de Vias Aéreas Superiores (IVAS)","▲▲▲ Alta","Bloco 06"],
+        ["Autoinflamatórias","▲ Baixa","Bloco 06"],
+        ["Pneumonias","💎 Diamante","Bloco 06"],
+        ["Bronquiolite e Coqueluche","💎 Diamante","Bloco 06"],
+        ["COVID","▲ Baixa","Bloco 06"],
+        ["Dermatite Atópica e Lesões Benignas do Recém-Nascido","▲▲▲ Alta","Bloco 08"],
+        ["Dermatoses e Infecções de Partes Moles","💎 Diamante","Bloco 08"],
+        ["Arboviroses","▲▲▲ Alta","Bloco 11"],
+        ["Doenças Exantemáticas","💎 Diamante","Bloco 11"],
+        ["Peçonhentos, Raiva e Tétano","💎 Diamante","Bloco 12"],
+        ["Tuberculose","▲▲▲ Alta","Bloco 13"],
+        ["Meningite e Encefalite","💎 Diamante","Bloco 14"],
+        ["Vacinação","💎 Diamante","Bloco 15"],
+        ["HIV","▲ Baixa","Bloco 15"],
+        ["Asma - Pediatria","💎 Diamante","Bloco 17"],
+        ["Fibrose Cística e Diferenciais","▲▲▲ Alta","Bloco 17"],
+        ["Imunodeficiências para o Pediatra","▲▲ Média","Bloco 17"],
+        ["Parasitoses Intestinais","▲▲▲ Alta","Bloco 19"],
+        ["Otites, Perda Auditiva, Rinossinusites e Epistaxe","▲ Baixa","Bloco 24"],
+        ["Rinites e Afecções da Laringe e Faringe","▲ Baixa","Bloco 24"]
+      ]],
+      ["Pediatria","Nefro, Emergências, Hemato, Reumato e Cirurgia Ped","Especialidades Pediátricas",[
+        ["Nefrologia Pediátrica","💎 Diamante","Bloco 02"],
+        ["Doença Renal Crônica e Lesão Renal Aguda","▲ Baixa","Bloco 02"],
+        ["Miscelânea em Nefropediatria","▲▲ Média","Bloco 02"],
+        ["Politrauma, Afogamento","▲ Baixa","Bloco 05"],
+        ["Queimaduras - Pediatria","▲ Baixa","Bloco 05"],
+        ["Traumatismo Cranioencefálico e Hipertensão Intracraniana","▲▲ Média","Bloco 05"],
+        ["Anemia Falciforme","▲▲▲ Alta","Bloco 09"],
+        ["Anemia Ferropriva e Talassemia","💎 Diamante","Bloco 09"],
+        ["Hemostasia e Distúrbios Hemorrágicos","▲▲▲ Alta","Bloco 09"],
+        ["Suporte Avançado de Vida em Pediatria (PALS)","💎 Diamante","Bloco 10"],
+        ["Cardiopatias Congênitas","▲▲▲ Alta","Bloco 10"],
+        ["Hipertensão Arterial Sistêmica (HAS) - Pediatria","▲▲▲ Alta","Bloco 10"],
+        ["Miocardite, Síncope, Insuficiência Cardíaca","▲▲ Média","Bloco 10"],
+        ["Ingestão e Aspiração de Corpo Estranho e BRUE","▲▲ Média","Bloco 12"],
+        ["Convulsão na Emergência e Convulsão Febril","💎 Diamante","Bloco 13"],
+        ["Kawasaki, Vasculite por IgA e Febre Reumática","💎 Diamante","Bloco 14"],
+        ["Artrite Idiopática Juvenil","▲▲▲ Alta","Bloco 14"],
+        ["Ortopedia Pediátrica","💎 Diamante","Bloco 15"],
+        ["Osteomielite e Artrite Séptica","▲▲ Média","Bloco 15"],
+        ["Neoplasias Pediátricas","💎 Diamante","Bloco 19"],
+        ["Infecção de Trato Urinário (ITU) - Pediatria","▲▲ Média","Bloco 20"],
+        ["Sedoanalgesia e Sequência Rápida de Intubação","▲ Baixa","Bloco 20"],
+        ["Sepse Pediátrica","▲▲ Média","Bloco 20"],
+        ["Choque e Drogas Vasoativas","▲▲ Média","Bloco 20"],
+        ["Cirurgia Pediátrica no PS","💎 Diamante","Bloco 21"],
+        ["Uropediatria e Hérnias","▲▲▲ Alta","Bloco 21"],
+        ["Malformações Congênitas","▲▲ Média","Bloco 21"],
+        ["Psiquiatria da Infância e Adolescência","🎁 Bônus","Bloco 23"],
+        ["Epilepsias na Infância","🎁 Bônus","Bloco 23"],
+        ["Oftalmopediatria","▲ Baixa","Bloco 25"],
+        ["Malformações do Sistema Nervoso","▲ Baixa","Bloco 26"],
+        ["Doenças Neuromusculares na Infância","▲ Baixa","Bloco 26"]
+      ]],
+
+      // MEDICINA PREVENTIVA
+      ["Medicina Preventiva","Epidemiologia, Estudos e Bioestatística","Indicadores, Testes Diagnósticos e Estudos",[
+        ["Boas Vindas à Preventiva","▲▲▲ Alta","Bloco 01"],
+        ["Níveis de Prevenção","▲▲▲ Alta","Bloco 01"],
+        ["Indicadores de Saúde","💎 Diamante","Bloco 01"],
+        ["Testes Diagnósticos","💎 Diamante","Bloco 02"],
+        ["Determinação Social do Processo Saúde-Doença e Promoção de Saúde","💎 Diamante","Bloco 03"],
+        ["Classificação dos Estudos Epidemiológicos","💎 Diamante","Bloco 05"],
+        ["Associação x Causalidade","▲▲▲ Alta","Bloco 05"],
+        ["Rastreamentos","▲▲▲ Alta","Bloco 05"],
+        ["Estudos Transversais","▲▲▲ Alta","Bloco 06"],
+        ["Estudos Longitudinais: Coorte e Caso-Controle","💎 Diamante","Bloco 06"],
+        ["Medidas de Associação - Exercícios","▲▲▲ Alta","Bloco 10"],
+        ["Ética em Pesquisa Clínica","▲▲ Média","Bloco 11"],
+        ["Ensaios Clínicos","💎 Diamante","Bloco 11"],
+        ["Preventiva: a Jornada Continua","▲▲▲ Alta","Bloco 12"],
+        ["Significância Estatística: Valor-p e Intervalo de Confiança","▲▲▲ Alta","Bloco 12"],
+        ["Revisão Sistemática e Metanálise","💎 Diamante","Bloco 12"],
+        ["Medicina Baseada em Evidências","▲▲▲ Alta","Bloco 12"],
+        ["Vigilância em Saúde","💎 Diamante","Bloco 17"],
+        ["Processo Epidêmico","▲▲▲ Alta","Bloco 18"],
+        ["Preventiva: reta final","▲▲▲ Alta","Bloco 26"]
+      ]],
+      ["Medicina Preventiva","Políticas de Saúde e Legislação do SUS","História, Leis 8080/8142 e Financiamento",[
+        ["Redes de Atenção à Saúde e Níveis de Atenção","💎 Diamante","Bloco 04"],
+        ["História e Princípios do SUS","💎 Diamante","Bloco 07"],
+        ["Legislação do SUS I: Leis Orgânicas da Saúde","💎 Diamante","Bloco 08"],
+        ["Legislação do SUS II: NOBs, NOAS e Pacto pela Saúde","▲▲▲ Alta","Bloco 09"],
+        ["Legislação do SUS 3: Decreto 7508/11","▲▲▲ Alta","Bloco 10"],
+        ["Financiamento do SUS e Planejamento em Saúde","▲▲▲ Alta","Bloco 11"],
+        ["Financiamento da APS","💎 Diamante","Bloco 14"],
+        ["Saúde Socioecológica: Saúde Planetária, Saúde Única e Saúde Global","▲ Baixa","Bloco 20"],
+        ["Saúde Privada, Suplementar e Judicialização em Saúde","💎 Diamante","Bloco 23"]
+      ]],
+      ["Medicina Preventiva","Atenção Primária (APS), MFC, Saúde Mental e Ética","MCCP, ESF, Saúde do Trabalhador e Ética",[
+        ["Assistência ao Pré-Natal na APS","▲▲ Média","Bloco 02"],
+        ["Atenção Primária à Saúde","💎 Diamante","Bloco 04"],
+        ["Tabagismo","▲▲▲ Alta","Bloco 09"],
+        ["Rede de Atenção Psicossocial (RAPS)","▲▲ Média","Bloco 10"],
+        ["Cardiologia na APS","▲▲▲ Alta","Bloco 13"],
+        ["Diabetes no SUS","▲▲▲ Alta","Bloco 13"],
+        ["Estratégia da Saúde da Família","💎 Diamante","Bloco 13"],
+        ["Síndrome Depressiva","▲▲▲ Alta","Bloco 14"],
+        ["Síndrome Maníaca","▲ Baixa","Bloco 14"],
+        ["Ferramentas da APS/ESF","💎 Diamante","Bloco 15"],
+        ["Síndrome Ansiosa","▲▲ Média","Bloco 15"],
+        ["Telessaúde e Publicidade Médica","💎 Diamante","Bloco 16"],
+        ["Método Clínico Centrado na Pessoa e Comunicação de Notícias Difíceis","💎 Diamante","Bloco 16"],
+        ["Registro de Saúde Orientado por Problemas (ReSOAP)","▲▲ Média","Bloco 17"],
+        ["Abordagem Familiar e Comunitária","▲▲ Média","Bloco 18"],
+        ["Acidente de Trabalho","💎 Diamante","Bloco 19"],
+        ["Síndrome Psicótica","▲ Baixa","Bloco 19"],
+        ["Psicofarmacologia","▲ Baixa","Bloco 19"],
+        ["Pneumoconioses","▲▲ Média","Bloco 20"],
+        ["Tuberculose e Hanseníase na APS","💎 Diamante","Bloco 20"],
+        ["Declaração de Óbito, Atestados e Laudos","💎 Diamante","Bloco 21"],
+        ["Atenção à Saúde de Populações Específicas","💎 Diamante","Bloco 21"],
+        ["Ética Médica","💎 Diamante","Bloco 22"],
+        ["Intoxicações, Perda Auditiva Induzida por Ruído (PAIRO) e Burnout","▲▲ Média","Bloco 22"],
+        ["Dermatologia na APS","▲▲ Média","Bloco 22"],
+        ["Emergências Psiquiátricas","▲▲ Média","Bloco 23"],
+        ["Violências e Vulnerabilidade","💎 Diamante","Bloco 23"],
+        ["Transtornos alimentares, somatoformes e de personalidade","🎁 Bônus","Bloco 24"],
+        ["Saúde do Trabalhador","▲▲ Média","Bloco 25"],
+        ["Transtornos Relacionados a Substâncias - Álcool","▲▲ Média","Bloco 26"]
+      ]]
+    ];
+
+    // Tópicos que a usuária já havia marcado como [x] no print de Cirurgia:
+    const INITIAL_BAGAGEM_TITLES = new Set([
+      "Introdução ao Extensivo e Como Acertar Questões de Prova",
+      "Introdução ao Trauma e Atendimento Inicial",
+      "Trauma: Vias Aéreas",
+      "Choque e Ressuscitação Hemostática",
+      "Trauma: Medidas Auxiliares, FAST e demais avaliações",
+      "Trauma: Populações especiais",
+      "Trauma de Tórax",
+      "Trauma Abdominal",
+      "Trauma Urológico",
+      "Trauma de Pelve",
+      "Trauma Cranioencefálico",
+      "Trauma: Encerramento"
+    ]);
+
+    // Snapshot das questões reais que apareceram nos prints do Obsidian da usuária
+    const INITIAL_QLOGS = [
+      { id: "q1", date: "2026-11-09", macro: "Clínica Médica", area: "Neurologia", topic: "Epilepsia", parentTopic: "", feitas: 15, certas: 11, score: 5 },
+      { id: "q2", date: "2026-11-08", macro: "Clínica Médica", area: "Terapia Intensiva", topic: "Princípios de Ventilação Mecânica", parentTopic: "", feitas: 109, certas: 65, score: 5 },
+      { id: "q3", date: "2026-11-08", macro: "Cirurgia Geral", area: "Trauma", topic: "Trauma", parentTopic: "", feitas: 10, certas: 7, score: 5 },
+      { id: "q4", date: "2026-11-05", macro: "Clínica Médica", area: "Cardiologia", topic: "Infarto Agudo do Miocárdio", parentTopic: "", feitas: 83, certas: 42, score: 6 },
+      { id: "q5", date: "2026-11-05", macro: "Clínica Médica", area: "Cardiologia", topic: "Valvopatias", parentTopic: "", feitas: 40, certas: 25, score: 5 },
+      { id: "q6", date: "2026-11-05", macro: "Clínica Médica", area: "Cardiologia", topic: "Arritmias", parentTopic: "", feitas: 11, certas: 7, score: 5 },
+      { id: "q7", date: "2026-11-05", macro: "Clínica Médica", area: "Cardiologia", topic: "Bradiarritmias", parentTopic: "Arritmias", feitas: 10, certas: 8, score: 5 },
+      { id: "q8", date: "2026-11-05", macro: "Clínica Médica", area: "Cardiologia", topic: "Síncope", parentTopic: "", feitas: 10, certas: 5, score: 5 },
+      { id: "q9", date: "2026-11-05", macro: "Clínica Médica", area: "Pneumologia", topic: "Pneumonias Bacterianas", parentTopic: "", feitas: 10, certas: 8, score: 5 },
+      { id: "q10", date: "2026-11-03", macro: "Clínica Médica", area: "Nefrologia", topic: "Distúrbios do Sódio", parentTopic: "", feitas: 31, certas: 19, score: 5 },
+      { id: "q11", date: "2026-11-03", macro: "Clínica Médica", area: "Nefrologia", topic: "Gasometria Arterial", parentTopic: "", feitas: 25, certas: 21, score: 5 },
+      { id: "q12", date: "2026-11-03", macro: "Clínica Médica", area: "Endocrinologia", topic: "Diabetes", parentTopic: "", feitas: 25, certas: 15, score: 5 },
+      { id: "q13", date: "2026-11-03", macro: "Clínica Médica", area: "Nefrologia", topic: "Distúrbios do Potássio", parentTopic: "", feitas: 20, certas: 14, score: 5 },
+      { id: "q14", date: "2026-10-30", macro: "Clínica Médica", area: "Hepatologia", topic: "Cirrose Hepática", parentTopic: "", feitas: 10, certas: 2, score: 5 },
+      { id: "q15", date: "2026-10-26", macro: "Cirurgia Geral", area: "Abdome Agudo", topic: "Pancreatite Aguda", parentTopic: "", feitas: 23, certas: 12, score: 5 },
+      { id: "q16", date: "2026-10-19", macro: "Clínica Médica", area: "Cardiologia", topic: "Hipertensão Arterial", parentTopic: "", feitas: 25, certas: 13, score: 5 },
+      { id: "q17", date: "2026-10-19", macro: "Clínica Médica", area: "Cardiologia", topic: "Dor Torácica Não Coronariana", parentTopic: "", feitas: 25, certas: 16, score: 5 },
+      { id: "q18", date: "2026-10-19", macro: "Clínica Médica", area: "Cardiologia", topic: "ACLS", parentTopic: "", feitas: 10, certas: 9, score: 5 },
+      { id: "q19", date: "2026-10-18", macro: "Clínica Médica", area: "Cardiologia", topic: "Insuficiência Cardíaca", parentTopic: "", feitas: 65, certas: 39, score: 5 },
+      { id: "q20", date: "2026-10-17", macro: "Cirurgia Geral", area: "Trauma", topic: "FAST", parentTopic: "Trauma", feitas: 28, certas: 15, score: 4 },
+      { id: "q21", date: "2026-10-15", macro: "Medicina Preventiva", area: "Atenção Primária e SUS", topic: "APS", parentTopic: "", feitas: 45, certas: 34, score: 5 },
+      { id: "q22", date: "2026-10-14", macro: "Medicina Preventiva", area: "Atenção Primária e SUS", topic: "Medicina de Família", parentTopic: "", feitas: 35, certas: 26, score: 5 },
+      { id: "q23", date: "2026-10-12", macro: "Pediatria", area: "Puericultura", topic: "Aleitamento Materno", parentTopic: "", feitas: 30, certas: 24, score: 5 },
+      { id: "q24", date: "2026-10-10", macro: "Ginecologia e Obstetrícia", area: "Obstetrícia", topic: "Assistência ao Pré-Natal", parentTopic: "", feitas: 40, certas: 29, score: 5 }
+    ];
+
+    // =========================================================================
+    // 2. GERENCIAMENTO DE ESTADO LOCAL (LOCALSTORAGE)
+    // =========================================================================
+    const STORAGE_KEY = "medfocus_r1_state_v1";
+    let appState = null;
+    let currentScheduleAreaFilter = "ALL";
+    let areaWidgetWindowMode = "ALL"; // "ALL" ou "30D"
+
+    function getTodayISO() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, "0");
+      const d = String(now.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function normalizeKey(str) {
+      return (str || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]/g, "");
+    }
+
+    function buildInitialScheduleTopics() {
+      const list = [];
+      let idx = 1;
+      for (const [area, esp, sub, topics] of RAW_MEDCOF_DATA) {
+        for (const [title, prio, block] of topics) {
+          const isInitialBagagem = INITIAL_BAGAGEM_TITLES.has(title);
+          list.push({
+            id: "t_" + idx++,
+            area,
+            esp,
+            sub,
+            title,
+            prio,
+            block,
+            status: isInitialBagagem ? "bagagem" : "pending", // "pending" | "bagagem" | "done"
+            completedAt: isInitialBagagem ? "2026-11-11" : null
+          });
+        }
+      }
+      return list;
+    }
+
+    function loadAppState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          appState = JSON.parse(saved);
+          // Garante campos novos
+          if (!appState.dailyGoal) appState.dailyGoal = 40;
+          if (!appState.annualGoal) appState.annualGoal = 18000;
+          if (!appState.parentLinks) appState.parentLinks = { "bradiarritmias": "Arritmias", "fast": "Trauma" };
+          if (!appState.topicMacroMap) appState.topicMacroMap = {};
+          if (!appState.dailyManualCounts) appState.dailyManualCounts = {};
+          if (!appState.dailyQuotas) appState.dailyQuotas = {};
+          return;
+        } catch (e) {
+          console.error("Erro ao ler estado salvo:", e);
+        }
+      }
+
+      // Estado padrão inicial com os dados dos prints da usuária
+      appState = {
+        darkMode: false,
+        dailyGoal: 40,
+        annualGoal: 18000,
+        lastBackupDate: null,
+        scheduleTopics: buildInitialScheduleTopics(),
+        qlogs: JSON.parse(JSON.stringify(INITIAL_QLOGS)),
+        parentLinks: {
+          "bradiarritmias": "Arritmias",
+          "taquiarritmias": "Arritmias",
+          "fast": "Trauma"
+        },
+        topicMacroMap: {},
+        dailyManualCounts: {},
+        dailyQuotas: {}
+      };
+      saveAppState(false);
+    }
+
+    function saveAppState(showFeedback = true) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      if (showFeedback) {
+        const el = document.getElementById("save-indicator");
+        if (el) {
+          el.textContent = "✓ Salvo agora mesmo no navegador";
+          setTimeout(() => {
+            el.textContent = "● Salvo localmente neste navegador";
+          }, 2000);
+        }
+      }
+    }
+
+    function showToast(msg, type = "success") {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      const bg = type === "success" ? "#0f7490" : (type === "warn" ? "#d97706" : "#dc2626");
+      toast.className = "px-4 py-2.5 rounded-xl text-white text-xs sm:text-sm font-semibold shadow-lg transition-all duration-300";
+      toast.style.backgroundColor = bg;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        setTimeout(() => toast.remove(), 300);
+      }, 2800);
+    }
+
+    // =========================================================================
+    // 3. LÓGICA DE HIERARQUIA (SOMA AUTOMÁTICA DE SUBRAMOS NO TEMA-PAI)
+    // =========================================================================
+    function buildQuestionAggregates() {
+      // Mapeia áreas do cronograma para reconhecer temas automaticamente
+      const schedAreaMap = {};
+      for (const item of appState.scheduleTopics) {
+        schedAreaMap[normalizeKey(item.title)] = item.area;
+      }
+      for (const [k, v] of Object.entries(appState.topicMacroMap || {})) {
+        schedAreaMap[k] = v;
+      }
+
+      const nodes = {}; // key -> dados acumulados
+      let globalTotalFeitas = 0;
+      let globalTotalCertas = 0;
+
+      function ensureNode(key, displayName, macro, isChild, parentKey) {
+        if (!nodes[key]) {
+          nodes[key] = {
+            key,
+            name: displayName,
+            macro: macro || schedAreaMap[key] || "Clínica Médica",
+            isChild: !!isChild,
+            parentKey: parentKey || null,
+            totalFeitas: 0,
+            totalCertas: 0,
+            lastDate: "1970-01-01",
+            recentFeitas: 0,
+            recentCertas: 0,
+            childrenKeys: new Set()
+          };
+        }
+        return nodes[key];
+      }
+
+      function addStatsToNode(node, dateISO, feitas, certas) {
+        node.totalFeitas += feitas;
+        node.totalCertas += certas;
+        if (dateISO >= node.lastDate) {
+          if (dateISO > node.lastDate) {
+            node.lastDate = dateISO;
+            node.recentFeitas = feitas;
+            node.recentCertas = certas;
+          } else {
+            node.recentFeitas += feitas;
+            node.recentCertas += certas;
+          }
+        }
+      }
+
+      for (const log of appState.qlogs) {
+        const feitas = Number(log.feitas) || 0;
+        const certas = Number(log.certas) || 0;
+        if (feitas <= 0) continue;
+
+        // Soma apenas 1 vez no contador global (sem duplicar pai + filho)
+        globalTotalFeitas += feitas;
+        globalTotalCertas += certas;
+
+        const childKey = normalizeKey(log.topic);
+        const parentName = log.parentTopic || appState.parentLinks[childKey] || "";
+        const parentKey = parentName ? normalizeKey(parentName) : null;
+        const macroResolved = log.macro || schedAreaMap[childKey] || (parentKey ? schedAreaMap[parentKey] : "Clínica Médica");
+
+        if (parentKey && parentKey !== childKey) {
+          const pNode = ensureNode(parentKey, parentName, macroResolved, false, null);
+          const cNode = ensureNode(childKey, log.topic, macroResolved, true, parentKey);
+          pNode.childrenKeys.add(childKey);
+
+          // Acumula no Filho e propaga automaticamente para o Pai!
+          addStatsToNode(cNode, log.date, feitas, certas);
+          addStatsToNode(pNode, log.date, feitas, certas);
+        } else {
+          const node = ensureNode(childKey, log.topic, macroResolved, false, null);
+          addStatsToNode(node, log.date, feitas, certas);
+        }
+      }
+
+      // Calcula % Geral, % Recente e Próxima Revisão (+3d, +7d, +15d)
+      const todayISO = getTodayISO();
+      let overdueCount = 0;
+      let countRed = 0, countYel = 0, countGrn = 0;
+
+      const allNodes = Object.values(nodes).map(n => {
+        const pctGeral = n.totalFeitas > 0 ? Math.round((n.totalCertas / n.totalFeitas) * 100) : 0;
+        const pctRecente = n.recentFeitas > 0 ? Math.round((n.recentCertas / n.recentFeitas) * 100) : pctGeral;
+
+        let daysAdd = 3;
+        let semIcon = "🔴";
+        let semColor = "RED";
+        if (pctRecente >= 85) {
+          daysAdd = 15;
+          semIcon = "🟢";
+          semColor = "GRN";
+        } else if (pctRecente >= 70) {
+          daysAdd = 7;
+          semIcon = "🟡";
+          semColor = "YEL";
+        }
+
+        const dt = new Date(n.lastDate + "T12:00:00");
+        dt.setDate(dt.getDate() + daysAdd);
+        const nextRevISO = dt.toISOString().split("T")[0];
+        const isOverdue = nextRevISO <= todayISO;
+
+        if (!n.isChild) {
+          if (isOverdue) overdueCount++;
+          if (semColor === "RED") countRed++;
+          else if (semColor === "YEL") countYel++;
+          else countGrn++;
+        }
+
+        return {
+          ...n,
+          pctGeral,
+          pctRecente,
+          semIcon,
+          semColor,
+          nextRevISO,
+          isOverdue
+        };
+      });
+
+      return {
+        nodesMap: Object.fromEntries(allNodes.map(n => [n.key, n])),
+        allNodes,
+        globalTotalFeitas,
+        globalTotalCertas,
+        overdueCount,
+        countRed,
+        countYel,
+        countGrn
+      };
+    }
+
+    function formatDateBR(iso) {
+      if (!iso || iso === "1970-01-01") return "-";
+      const [y, m, d] = iso.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    // =========================================================================
+    // 4. RENDERIZAÇÃO DA SIDEBAR DE MICRO-WIDGETS
+    // =========================================================================
+    function getDailyQuestionsMap() {
+      const map = {};
+      for (const log of appState.qlogs) {
+        if (log.date) {
+          map[log.date] = (map[log.date] || 0) + (Number(log.feitas) || 0);
+        }
+      }
+      for (const [d, manualVal] of Object.entries(appState.dailyManualCounts || {})) {
+        if (Number(manualVal) > (map[d] || 0)) {
+          map[d] = Number(manualVal);
+        }
+      }
+      return map;
+    }
+
+    function renderSidebarWidgets(agg) {
+      const todayISO = getTodayISO();
+      const dailyMap = getDailyQuestionsMap();
+      const goal = Number(appState.dailyGoal) || 40;
+      const doneToday = dailyMap[todayISO] || 0;
+      const pctToday = Math.min(100, Math.round((doneToday / goal) * 100));
+
+      // 1. Anel da Meta Diária
+      const circumference = 2 * Math.PI * 40; // 251.32
+      const offset = circumference - (pctToday / 100) * circumference;
+      const ringEl = document.getElementById("widget-ring-circle");
+      if (ringEl) {
+        ringEl.style.strokeDashoffset = offset;
+        ringEl.style.stroke = doneToday >= goal ? "#22c55e" : (doneToday >= goal * 0.5 ? "#f59e0b" : "#0f7490");
+      }
+      document.getElementById("widget-daily-done").textContent = doneToday;
+      document.getElementById("widget-daily-target").textContent = `/${goal}`;
+      document.getElementById("widget-daily-pct").textContent = `🎯 ${pctToday}%`;
+
+      // Calcula Streak (Ofensiva)
+      let streak = 0;
+      const cursor = new Date(todayISO + "T12:00:00");
+      while (true) {
+        const iso = cursor.toISOString().split("T")[0];
+        const q = dailyMap[iso] || 0;
+        if (q >= goal) {
+          streak++;
+          cursor.setDate(cursor.getDate() - 1);
+        } else if (iso === todayISO) {
+          cursor.setDate(cursor.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      document.getElementById("widget-streak-badge").textContent = `🔥 ${streak}d`;
+
+      // 2. Bolinhas dos Últimos 7 Dias
+      const letters = ["D", "S", "T", "Q", "Q", "S", "S"];
+      let sum7d = 0;
+      let dotsHtml = "";
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const iso = d.toISOString().split("T")[0];
+        const q = dailyMap[iso] || 0;
+        sum7d += q;
+        const letter = letters[d.getDay()];
+        const bg = q >= goal ? "#22c55e" : (q > 0 ? "#f59e0b" : "rgba(120,110,96,0.22)");
+        const check = q >= goal ? "✓" : "";
+        dotsHtml += `
+          <div class="flex flex-col items-center gap-1" title="${formatDateBR(iso)}: ${q} questões">
+            <div class="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-extrabold text-white" style="background-color: ${bg};">
+              ${check}
+            </div>
+            <span class="text-[10px] font-bold" style="color: var(--text-muted);">${letter}</span>
+          </div>
+        `;
+      }
+      document.getElementById("widget-7days-dots").innerHTML = dotsHtml;
+      document.getElementById("widget-7d-sum").textContent = `${sum7d}q sem`;
+
+      // 3. Termômetro das 5 Áreas
+      const areasMeta = [
+        { name: "Clínica Médica", sigla: "CM", color: "#3b82f6" },
+        { name: "Cirurgia Geral", sigla: "CIR", color: "#ef4444" },
+        { name: "Ginecologia e Obstetrícia", sigla: "GO", color: "#ec4899" },
+        { name: "Pediatria", sigla: "PED", color: "#f59e0b" },
+        { name: "Medicina Preventiva", sigla: "PREV", color: "#10b981" }
+      ];
+      const cutDate = new Date();
+      cutDate.setDate(cutDate.getDate() - 30);
+      const cutISO = cutDate.toISOString().split("T")[0];
+
+      let barsHtml = "";
+      for (const a of areasMeta) {
+        let f = 0, c = 0;
+        for (const log of appState.qlogs) {
+          if (areaWidgetWindowMode === "30D" && log.date < cutISO) continue;
+          if (log.macro === a.name) {
+            f += Number(log.feitas) || 0;
+            c += Number(log.certas) || 0;
+          }
+        }
+        const pct = f > 0 ? Math.round((c / f) * 100) : 0;
+        barsHtml += `
+          <div class="flex items-center gap-1.5 text-[11px]" title="${a.name}: ${c}/${f} (${pct}%)">
+            <span class="w-8 font-extrabold" style="color: ${a.color};">${a.sigla}</span>
+            <div class="flex-1 h-1.5 rounded-full overflow-hidden bg-black/10 dark:bg-white/10">
+              <div class="h-full rounded-full" style="width: ${pct}%; background-color: ${a.color};"></div>
+            </div>
+            <span class="w-8 text-right font-bold">${pct}%</span>
+          </div>
+        `;
+      }
+      document.getElementById("widget-5areas-bars").innerHTML = barsHtml;
+
+      // 4. Semáforo + Top 3 Revisões Urgentes
+      document.getElementById("sem-red").textContent = agg.countRed;
+      document.getElementById("sem-yel").textContent = agg.countYel;
+      document.getElementById("sem-grn").textContent = agg.countGrn;
+
+      const urgentTopics = agg.allNodes
+        .filter(n => !n.isChild && n.isOverdue)
+        .sort((a, b) => a.pctRecente - b.pctRecente)
+        .slice(0, 3);
+
+      const urgentContainer = document.getElementById("widget-urgent-list");
+      if (urgentTopics.length === 0) {
+        urgentContainer.innerHTML = `<div class="text-[11px] text-center py-1" style="color: var(--text-muted);">🎉 Tudo em dia!</div>`;
+      } else {
+        urgentContainer.innerHTML = urgentTopics.map(u => `
+          <div onclick="openQuestionModal('${u.name.replace(/'/g, "\\'")}', '${u.macro}')" class="flex items-center justify-between pt-1 border-t cursor-pointer hover:opacity-80" style="border-color: var(--border-color);" title="Clique para registrar revisão de ${u.name}">
+            <span class="truncate max-w-[130px] font-medium">${u.name}</span>
+            <span class="font-bold ${u.pctRecente < 70 ? 'text-red-500' : 'text-amber-500'}">${u.pctRecente}%</span>
+          </div>
+        `).join("");
+      }
+
+      // 5. Cota Diária (Checklist de 4 entregas)
+      if (!appState.dailyQuotas[todayISO]) {
+        appState.dailyQuotas[todayISO] = { t2: false, q40: false, rev2: false, anki: false };
+      }
+      const qTodayObj = appState.dailyQuotas[todayISO];
+      // Auto-marca 40 questões se atingiu a meta
+      if (doneToday >= goal) qTodayObj.q40 = true;
+
+      const quotaItems = [
+        { key: "t2", label: "2 Tópicos do Edital" },
+        { key: "q40", label: `${goal} Questões no Dia` },
+        { key: "rev2", label: "2 Temas Atrasados" },
+        { key: "anki", label: "Anki + Erros do Dia" }
+      ];
+      const doneQuotas = quotaItems.filter(i => qTodayObj[i.key]).length;
+      document.getElementById("widget-quota-count").textContent = `${doneQuotas}/4`;
+      document.getElementById("widget-daily-checklist").innerHTML = quotaItems.map(item => `
+        <label class="flex items-center gap-2 cursor-pointer select-none">
+          <input type="checkbox" ${qTodayObj[item.key] ? "checked" : ""} onchange="toggleDailyQuotaItem('${item.key}')" class="rounded accent-teal-700" />
+          <span class="${qTodayObj[item.key] ? 'line-through opacity-60' : 'font-medium'}">${item.label}</span>
+        </label>
+      `).join("");
+
+      // 6. Odômetro Anual e Aulas Vistas
+      const annualTarget = Number(appState.annualGoal) || 18000;
+      const pctAnnual = Math.min(100, ((agg.globalTotalFeitas / annualTarget) * 100).toFixed(1));
+      document.getElementById("odo-questions-text").textContent = agg.globalTotalFeitas;
+      document.getElementById("odo-questions-pct").textContent = `${pctAnnual}%`;
+      document.getElementById("odo-questions-bar").style.width = `${pctAnnual}%`;
+
+      const totalSched = appState.scheduleTopics.length;
+      const seenSched = appState.scheduleTopics.filter(t => t.status !== "pending").length;
+      const pctSched = totalSched > 0 ? Math.round((seenSched / totalSched) * 100) : 0;
+      document.getElementById("odo-topics-text").textContent = `${seenSched}/${totalSched}`;
+      document.getElementById("odo-topics-pct").textContent = `${pctSched}%`;
+      document.getElementById("odo-topics-bar").style.width = `${pctSched}%`;
+    }
+
+    function toggleAreaWidgetWindow() {
+      areaWidgetWindowMode = areaWidgetWindowMode === "ALL" ? "30D" : "ALL";
+      document.getElementById("widget-area-window-btn").textContent = areaWidgetWindowMode === "ALL" ? "Geral" : "30d";
+      refreshAllViews();
+    }
+
+    function toggleDailyQuotaItem(key) {
+      const todayISO = getTodayISO();
+      if (!appState.dailyQuotas[todayISO]) {
+        appState.dailyQuotas[todayISO] = { t2: false, q40: false, rev2: false, anki: false };
+      }
+      appState.dailyQuotas[todayISO][key] = !appState.dailyQuotas[todayISO][key];
+      saveAppState();
+      refreshAllViews();
+    }
+
+    function quickAddDailyQuestions(amount) {
+      const todayISO = getTodayISO();
+      const dailyMap = getDailyQuestionsMap();
+      const current = dailyMap[todayISO] || 0;
+      appState.dailyManualCounts[todayISO] = current + amount;
+      saveAppState();
+      refreshAllViews();
+      showToast(`+${amount} questões adicionadas à meta de hoje!`);
+    }
+
+    // =========================================================================
+    // 5. RENDERIZAÇÃO DA ABA 1: TABELA DE QUESTÕES COM SUBRAMOS
+    // =========================================================================
+    function renderQuestionsTable(aggData) {
+      const agg = aggData || buildQuestionAggregates();
+
+      // Atualiza barra superior
+      const globalPct = agg.globalTotalFeitas > 0 ? Math.round((agg.globalTotalCertas / agg.globalTotalFeitas) * 100) : 0;
+      document.getElementById("top-total-feitas").textContent = agg.globalTotalFeitas;
+      document.getElementById("top-total-acertos").textContent = `${agg.globalTotalCertas} (${globalPct}%)`;
+      document.getElementById("top-temas-atrasados").textContent = agg.overdueCount;
+
+      const searchVal = (document.getElementById("q-search-input")?.value || "").toLowerCase().trim();
+      const areaFilter = document.getElementById("q-area-filter")?.value || "ALL";
+      const statusFilter = document.getElementById("q-status-filter")?.value || "ALL";
+      const sortMode = document.getElementById("q-sort-filter")?.value || "DATE_DESC";
+
+      // Separa temas-pai (raízes) para ordenar e manter seus subramos logo abaixo
+      const rootNodes = agg.allNodes.filter(n => !n.isChild);
+
+      rootNodes.sort((a, b) => {
+        if (sortMode === "DATE_DESC") return b.lastDate.localeCompare(a.lastDate) || b.totalFeitas - a.totalFeitas;
+        if (sortMode === "REV_ASC") return a.nextRevISO.localeCompare(b.nextRevISO);
+        if (sortMode === "PCT_ASC") return a.pctGeral - b.pctGeral;
+        if (sortMode === "TOTAL_DESC") return b.totalFeitas - a.totalFeitas;
+        return a.name.localeCompare(b.name);
+      });
+
+      const finalRows = [];
+      for (const root of rootNodes) {
+        const children = Array.from(root.childrenKeys)
+          .map(k => agg.nodesMap[k])
+          .filter(Boolean)
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        const groupMatchesSearch = !searchVal ||
+          root.name.toLowerCase().includes(searchVal) ||
+          children.some(c => c.name.toLowerCase().includes(searchVal));
+
+        if (!groupMatchesSearch) continue;
+        if (areaFilter !== "ALL" && root.macro !== areaFilter) continue;
+
+        const matchesStatus = (node) => {
+          if (statusFilter === "ALL") return true;
+          if (statusFilter === "OVERDUE") return node.isOverdue;
+          return node.semColor === statusFilter;
+        };
+
+        if (matchesStatus(root)) {
+          finalRows.push(root);
+          for (const child of children) {
+            finalRows.push(child);
+          }
+        } else {
+          // Se o filtro for específico e apenas um subramo bater
+          for (const child of children) {
+            if (matchesStatus(child)) finalRows.push(child);
+          }
+        }
+      }
+
+      document.getElementById("th-materia-count").textContent = `(${finalRows.length})`;
+      document.getElementById("q-table-count-badge").textContent = `${finalRows.length} itens exibidos`;
+
+      const tbody = document.getElementById("questions-tbody");
+      if (finalRows.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="py-10 text-center text-sm" style="color: var(--text-muted);">
+              Nenhuma matéria encontrada para este filtro. Clique em <b>"➕ Registrar Questões"</b> no topo para lançar uma bateria!
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = finalRows.map(item => {
+        const hasChildren = item.childrenKeys && item.childrenKeys.size > 0;
+        const parentObj = item.parentKey ? agg.nodesMap[item.parentKey] : null;
+        const labelMateria = item.isChild
+          ? `<div class="pl-5 flex items-center gap-1.5 opacity-90">
+               <span style="color: var(--accent-terracotta); font-weight: 700;">↳</span>
+               <span>${item.name}</span>
+             </div>`
+          : `<div class="font-semibold flex items-center gap-1.5">
+               <span>${item.name}</span>
+               ${hasChildren ? `<span class="text-[10px] px-1.5 py-0.5 rounded card-inset font-bold" title="Soma automática do tema + ${item.childrenKeys.size} subramo(s)">∑ +${item.childrenKeys.size} sub</span>` : ""}
+             </div>`;
+
+        const areaBadge = item.isChild && parentObj
+          ? `<span class="text-xs opacity-75">${item.macro} › ${parentObj.name}</span>`
+          : `<span class="text-xs font-medium" style="color: var(--text-muted);">${item.macro}</span>`;
+
+        const escapedName = item.name.replace(/'/g, "\\'");
+        const escapedParent = parentObj ? parentObj.name.replace(/'/g, "\\'") : "";
+
+        return `
+          <tr class="border-b hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition" style="border-color: var(--border-color);">
+            <td class="py-3 px-4">${labelMateria}</td>
+            <td class="py-3 px-3">${areaBadge}</td>
+            <td class="py-3 px-3 font-semibold">${item.totalFeitas}</td>
+            <td class="py-3 px-3 font-semibold">${item.pctGeral}%</td>
+            <td class="py-3 px-3">
+              <div class="obsidian-progress-track" title="${item.totalCertas}/${item.totalFeitas} (${item.pctGeral}%)">
+                <div class="obsidian-progress-fill" style="width: ${item.pctGeral}%;"></div>
+              </div>
+            </td>
+            <td class="py-3 px-3 whitespace-nowrap">${formatDateBR(item.lastDate)}</td>
+            <td class="py-3 px-3 font-semibold">${item.pctRecente}%</td>
+            <td class="py-3 px-3 whitespace-nowrap font-medium">
+              ${item.semIcon} ${formatDateBR(item.nextRevISO)}
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button onclick="openQuestionModal('${item.isChild ? escapedParent : escapedName}', '${item.macro}', '${item.isChild ? escapedName : ""}')" title="Lançar nova bateria de questões" class="px-2 py-1 rounded-lg text-xs font-bold card-inset hover:opacity-80 mr-1">
+                ➕ Questões
+              </button>
+              ${!item.isChild ? `
+              <button onclick="openQuestionModal('${escapedName}', '${item.macro}', '', true)" title="Criar subramo dentro de ${item.name}" class="px-2 py-1 rounded-lg text-xs card-inset hover:opacity-80">
+                🌿 Sub
+              </button>` : ""}
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    // =========================================================================
+    // 6. RENDERIZAÇÃO DA ABA 2: CRONOGRAMA MEDCOF (414 TÓPICOS)
+    // =========================================================================
+    function populateBlockSelect() {
+      const sel = document.getElementById("sched-block-filter");
+      if (!sel || sel.options.length > 1) return;
+      for (let i = 1; i <= 26; i++) {
+        const bName = `Bloco ${String(i).padStart(2, "0")}`;
+        const opt = document.createElement("option");
+        opt.value = bName;
+        opt.textContent = `📦 ${bName}`;
+        sel.appendChild(opt);
+      }
+    }
+
+    function setScheduleAreaFilter(area) {
+      currentScheduleAreaFilter = area;
+      document.querySelectorAll(".sched-area-pill").forEach(btn => {
+        if (btn.dataset.area === area) {
+          btn.style.backgroundColor = "var(--accent-teal)";
+          btn.classList.add("text-white", "font-bold");
+          btn.classList.remove("card-inset");
+        } else {
+          btn.style.backgroundColor = "";
+          btn.classList.remove("text-white", "font-bold");
+          btn.classList.add("card-inset");
+        }
+      });
+      renderScheduleView();
+    }
+
+    function cycleScheduleTopicStatus(topicId, targetStatus) {
+      const topic = appState.scheduleTopics.find(t => t.id === topicId);
+      if (!topic) return;
+
+      if (targetStatus) {
+        topic.status = targetStatus;
+      } else {
+        // Ciclo: pending -> bagagem -> done -> pending
+        if (topic.status === "pending") topic.status = "bagagem";
+        else if (topic.status === "bagagem") topic.status = "done";
+        else topic.status = "pending";
+      }
+
+      topic.completedAt = topic.status === "pending" ? null : getTodayISO();
+      saveAppState();
+      refreshAllViews();
+    }
+
+    function renderScheduleView() {
+      populateBlockSelect();
+      const search = (document.getElementById("sched-search")?.value || "").toLowerCase().trim();
+      const blockFilter = document.getElementById("sched-block-filter")?.value || "ALL";
+      const prioFilter = document.getElementById("sched-prio-filter")?.value || "ALL";
+      const statusFilter = document.getElementById("sched-status-filter")?.value || "ALL";
+
+      const filtered = appState.scheduleTopics.filter(t => {
+        if (currentScheduleAreaFilter !== "ALL" && t.area !== currentScheduleAreaFilter) return false;
+        if (blockFilter !== "ALL" && t.block !== blockFilter) return false;
+        if (prioFilter === "PARETO" && !(t.prio.includes("Diamante") || t.prio.includes("Alta"))) return false;
+        if (prioFilter !== "ALL" && prioFilter !== "PARETO" && !t.prio.includes(prioFilter)) return false;
+        if (statusFilter === "pending" && t.status !== "pending") return false;
+        if (statusFilter === "bagagem" && t.status !== "bagagem") return false;
+        if (statusFilter === "done" && t.status !== "done") return false;
+        if (statusFilter === "any_seen" && t.status === "pending") return false;
+        if (search && !(t.title.toLowerCase().includes(search) || t.esp.toLowerCase().includes(search) || t.sub.toLowerCase().includes(search))) return false;
+        return true;
+      });
+
+      // Agrupa por Grande Área -> Especialidade -> Subtema
+      const grouped = {};
+      for (const item of filtered) {
+        if (!grouped[item.area]) grouped[item.area] = {};
+        if (!grouped[item.area][item.esp]) grouped[item.area][item.esp] = {};
+        if (!grouped[item.area][item.esp][item.sub]) grouped[item.area][item.esp][item.sub] = [];
+        grouped[item.area][item.esp][item.sub].push(item);
+      }
+
+      const container = document.getElementById("schedule-tree-container");
+      const areasKeys = Object.keys(grouped);
+      if (areasKeys.length === 0) {
+        container.innerHTML = `<div class="card-surface rounded-2xl p-8 text-center text-sm" style="color: var(--text-muted);">Nenhum tópico encontrado com esses filtros.</div>`;
+        return;
+      }
+
+      let html = "";
+      for (const areaName of areasKeys) {
+        const esps = grouped[areaName];
+        html += `
+          <div class="card-surface rounded-2xl p-5 flex flex-col gap-4">
+            <h3 class="font-serif-title font-bold text-xl border-b pb-2" style="color: var(--accent-terracotta); border-color: var(--border-color);">
+              ${areaName}
+            </h3>
+        `;
+
+        for (const espName of Object.keys(esps)) {
+          const subs = esps[espName];
+          html += `
+            <div class="flex flex-col gap-2.5">
+              <h4 class="font-bold text-sm sm:text-base" style="color: var(--accent-teal);">## ${espName}</h4>
+          `;
+
+          for (const subName of Object.keys(subs)) {
+            const topics = subs[subName];
+            html += `
+              <div class="pl-2 sm:pl-4 flex flex-col gap-1.5">
+                <div class="text-xs font-bold uppercase tracking-wider opacity-75">### ${subName}</div>
+                <div class="flex flex-col gap-1.5">
+            `;
+
+            for (const t of topics) {
+              const isBag = t.status === "bagagem";
+              const isDone = t.status === "done";
+              const prioColor = t.prio.includes("Diamante")
+                ? "bg-sky-500/15 text-sky-700 dark:text-sky-300"
+                : (t.prio.includes("Alta") ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                : (t.prio.includes("Média") ? "bg-amber-500/15 text-amber-700 dark:text-amber-300"
+                : "bg-purple-500/15 text-purple-700 dark:text-purple-300"));
+
+              const escapedTitle = t.title.replace(/'/g, "\\'");
+
+              html += `
+                <div class="card-inset rounded-xl px-3 py-2 flex flex-wrap items-center justify-between gap-2 transition ${t.status !== 'pending' ? 'opacity-85' : ''}">
+                  <div class="flex items-center gap-2.5 min-w-[220px] flex-1">
+                    <!-- Botões de Estado Rápido -->
+                    <div class="inline-flex rounded-lg p-0.5 card-surface text-[11px] font-semibold shrink-0">
+                      <button onclick="cycleScheduleTopicStatus('${t.id}', 'pending')" title="Pendente (Falta estudar)" class="px-2 py-0.5 rounded-md ${t.status === 'pending' ? 'bg-black/15 dark:bg-white/20 font-bold' : 'opacity-60'}">⬜</button>
+                      <button onclick="cycleScheduleTopicStatus('${t.id}', 'bagagem')" title="Bagagem Antiga (Já vi antes, só revisar)" class="px-2 py-0.5 rounded-md ${isBag ? 'bg-amber-500 text-white font-bold' : 'opacity-60'}">🟡 Bagagem</button>
+                      <button onclick="cycleScheduleTopicStatus('${t.id}', 'done')" title="Concluído no ciclo atual" class="px-2 py-0.5 rounded-md ${isDone ? 'bg-emerald-600 text-white font-bold' : 'opacity-60'}">✅ Feito</button>
+                    </div>
+
+                    <span class="text-xs sm:text-sm font-medium ${isDone ? 'line-through opacity-75' : ''}">${t.title}</span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <span class="text-[11px] px-2 py-0.5 rounded-md font-bold ${prioColor}">${t.prio}</span>
+                    <span class="text-[11px] px-2 py-0.5 rounded-md card-surface font-semibold" style="color: var(--text-muted);">${t.block}</span>
+                    <button onclick="openQuestionModal('${escapedTitle}', '${t.area}')" title="Registrar questões deste tópico" class="text-xs px-2 py-1 rounded-lg card-surface hover:opacity-80 font-semibold">
+                      🎯 +Questões
+                    </button>
+                  </div>
+                </div>
+              `;
+            }
+
+            html += `</div></div>`;
+          }
+          html += `</div>`;
+        }
+        html += `</div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    // =========================================================================
+    // 7. RENDERIZAÇÃO DA ABA 3: ESTATÍSTICAS DO EDITAL & FILA DE RECICLAGEM
+    // =========================================================================
+    function renderStatisticsView(aggData) {
+      const agg = aggData || buildQuestionAggregates();
+      const topics = appState.scheduleTopics;
+      const total = topics.length;
+      const bagagemCount = topics.filter(t => t.status === "bagagem").length;
+      const doneCount = topics.filter(t => t.status === "done").length;
+      const seenTotal = bagagemCount + doneCount;
+      const pendingTotal = total - seenTotal;
+      const pctSeen = total > 0 ? ((seenTotal / total) * 100).toFixed(1) : "0.0";
+
+      const paretoTopics = topics.filter(t => t.prio.includes("Diamante") || t.prio.includes("Alta"));
+      const paretoSeen = paretoTopics.filter(t => t.status !== "pending").length;
+      const paretoPending = paretoTopics.length - paretoSeen;
+      const pctPareto = paretoTopics.length > 0 ? ((paretoSeen / paretoTopics.length) * 100).toFixed(1) : "0.0";
+
+      // Semanas até Outubro/2027
+      const examDate = new Date("2027-10-17T12:00:00");
+      const weeksLeft = Math.max(1, Math.round((examDate - new Date()) / (1000 * 60 * 60 * 24 * 7)));
+      const pacePareto = (paretoPending / weeksLeft).toFixed(1);
+      const paceTotal = (pendingTotal / weeksLeft).toFixed(1);
+
+      // 1. KPI Cards
+      document.getElementById("stats-kpi-cards").innerHTML = `
+        <div class="card-surface rounded-2xl p-4 border-l-4 border-emerald-500">
+          <div class="text-[11px] font-bold uppercase" style="color: var(--text-muted);">Cobertura Total do Edital</div>
+          <div class="text-2xl font-extrabold mt-1">${seenTotal} <span class="text-xs font-normal" style="color: var(--text-muted);">/ ${total} (${pctSeen}%)</span></div>
+          <div class="text-xs mt-1" style="color: var(--text-muted);">Faltam ver do zero: <b>${pendingTotal}</b></div>
+        </div>
+        <div class="card-surface rounded-2xl p-4 border-l-4 border-amber-500">
+          <div class="text-[11px] font-bold uppercase" style="color: var(--text-muted);">🟡 Bagagem Antiga (Só Revisar)</div>
+          <div class="text-2xl font-extrabold mt-1 text-amber-600 dark:text-amber-400">${bagagemCount} <span class="text-xs font-normal" style="color: var(--text-muted);">tópicos</span></div>
+          <div class="text-xs mt-1" style="color: var(--text-muted);">🟢 Avanço novo concluído: <b>${doneCount}</b></div>
+        </div>
+        <div class="card-surface rounded-2xl p-4 border-l-4 border-sky-500">
+          <div class="text-[11px] font-bold uppercase" style="color: var(--text-muted);">💎 Núcleo de Pareto (💎 + ▲▲▲)</div>
+          <div class="text-2xl font-extrabold mt-1 text-sky-600 dark:text-sky-400">${paretoSeen} <span class="text-xs font-normal" style="color: var(--text-muted);">/ ${paretoTopics.length} (${pctPareto}%)</span></div>
+          <div class="text-xs mt-1" style="color: var(--text-muted);">Pendentes de alta incidência: <b>${paretoPending}</b></div>
+        </div>
+        <div class="card-surface rounded-2xl p-4 border-l-4 border-purple-500">
+          <div class="text-[11px] font-bold uppercase" style="color: var(--text-muted);">⏱️ Ritmo até as Provas (${weeksLeft} sem)</div>
+          <div class="text-2xl font-extrabold mt-1">${pacePareto} <span class="text-xs font-normal" style="color: var(--text-muted);">Pareto/sem</span></div>
+          <div class="text-xs mt-1" style="color: var(--text-muted);">Ou <b>${paceTotal} tópicos/sem</b> (100% edital)</div>
+        </div>
+      `;
+
+      // 2. Barras Empilhadas por Grande Área
+      const areasOrder = ["Clínica Médica", "Cirurgia Geral", "Ginecologia e Obstetrícia", "Pediatria", "Medicina Preventiva"];
+      let areasBarsHtml = "";
+      for (const aName of areasOrder) {
+        const sub = topics.filter(t => t.area === aName);
+        const tot = sub.length || 1;
+        const bag = sub.filter(t => t.status === "bagagem").length;
+        const don = sub.filter(t => t.status === "done").length;
+        const pen = tot - bag - don;
+        const pBag = ((bag / tot) * 100).toFixed(1);
+        const pDon = ((don / tot) * 100).toFixed(1);
+        const pSeen = (((bag + don) / tot) * 100).toFixed(1);
+
+        areasBarsHtml += `
+          <div>
+            <div class="flex flex-wrap justify-between text-xs sm:text-sm mb-1">
+              <span class="font-bold">${aName}</span>
+              <span>
+                <b class="text-emerald-600 dark:text-emerald-400">🟢 ${don} novos</b> &nbsp;|&nbsp;
+                <b class="text-amber-600 dark:text-amber-400">🟡 ${bag} bagagem</b> &nbsp;|&nbsp;
+                <span style="color: var(--text-muted);">⬜ ${pen} faltam de ${tot}</span>
+                &nbsp;(<b>${pSeen}%</b>)
+              </span>
+            </div>
+            <div class="w-full h-3.5 rounded-full overflow-hidden flex bg-black/10 dark:bg-white/10">
+              <div class="h-full bg-emerald-500 transition-all" style="width: ${pDon}%" title="Avanço Novo: ${don}"></div>
+              <div class="h-full bg-amber-500 transition-all" style="width: ${pBag}%" title="Bagagem Antiga: ${bag}"></div>
+            </div>
+          </div>
+        `;
+      }
+      document.getElementById("stats-areas-bars").innerHTML = areasBarsHtml;
+
+      // 3. Tabela por Prioridade
+      const prioLevels = ["Diamante", "Alta", "Média", "Baixa", "Bônus"];
+      const prioLabels = {
+        "Diamante": "💎 Diamante",
+        "Alta": "▲▲▲ Alta",
+        "Média": "▲▲ Média",
+        "Baixa": "▲ Baixa",
+        "Bônus": "🎁 Bônus"
+      };
+      document.getElementById("stats-prio-tbody").innerHTML = prioLevels.map(pKey => {
+        const sub = topics.filter(t => t.prio.includes(pKey));
+        const tot = sub.length;
+        const bag = sub.filter(t => t.status === "bagagem").length;
+        const don = sub.filter(t => t.status === "done").length;
+        const pen = tot - bag - don;
+        const pct = tot > 0 ? Math.round(((bag + don) / tot) * 100) : 0;
+        return `
+          <tr class="border-b" style="border-color: var(--border-color);">
+            <td class="py-2 font-bold">${prioLabels[pKey]}</td>
+            <td class="py-2">${tot}</td>
+            <td class="py-2 text-amber-600 dark:text-amber-400 font-semibold">${bag}</td>
+            <td class="py-2 text-emerald-600 dark:text-emerald-400 font-semibold">${don}</td>
+            <td class="py-2 font-bold">${pen}</td>
+            <td class="py-2 font-bold">${pct}%</td>
+          </tr>
+        `;
+      }).join("");
+
+      // 4. Fila de Reciclagem da Bagagem Antiga
+      const seenTopics = topics.filter(t => t.status !== "pending");
+      const recyclingRows = seenTopics.map(t => {
+        const key = normalizeKey(t.title);
+        let qMatch = agg.nodesMap[key];
+        if (!qMatch) {
+          for (const [kNode, valNode] of Object.entries(agg.nodesMap)) {
+            if (kNode.length >= 5 && (key.includes(kNode) || kNode.includes(key))) {
+              qMatch = valNode;
+              break;
+            }
+          }
+        }
+        const prioWeight = t.prio.includes("Diamante") ? 5 : (t.prio.includes("Alta") ? 4 : 3);
+        return {
+          ...t,
+          prioWeight,
+          qFeitas: qMatch ? qMatch.totalFeitas : 0,
+          qPct: qMatch ? qMatch.pctGeral : null
+        };
+      }).sort((a, b) => (b.prioWeight - a.prioWeight) || ((a.qPct ?? -1) - (b.qPct ?? -1)));
+
+      const recTbody = document.getElementById("stats-recycling-tbody");
+      if (recyclingRows.length === 0) {
+        recTbody.innerHTML = `<tr><td colspan="4" class="py-6 text-center" style="color: var(--text-muted);">Marque tópicos como 🟡 Bagagem no Cronograma para vê-los aqui.</td></tr>`;
+      } else {
+        recTbody.innerHTML = recyclingRows.map(r => {
+          const qBadge = r.qPct !== null
+            ? `<b class="${r.qPct < 70 ? 'text-red-500' : 'text-emerald-600'}">${r.qPct}%</b> (${r.qFeitas}q)`
+            : `<span style="color: var(--text-muted);">0q feitas</span>`;
+          const escaped = r.title.replace(/'/g, "\\'");
+          return `
+            <tr class="border-b" style="border-color: var(--border-color);">
+              <td class="py-2 pr-2 font-medium">${r.title}</td>
+              <td class="py-2 px-2 whitespace-nowrap">${r.prio}</td>
+              <td class="py-2 px-2 whitespace-nowrap">${qBadge}</td>
+              <td class="py-2 pl-2 text-right">
+                <button onclick="openQuestionModal('${escaped}', '${r.area}')" class="px-2 py-0.5 rounded card-inset font-bold hover:opacity-80">
+                  +15q
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      // 5. Tabela por Especialidade
+      const espMap = {};
+      for (const t of topics) {
+        const k = `${t.area}__${t.esp}`;
+        if (!espMap[k]) espMap[k] = { area: t.area, esp: t.esp, tot: 0, seen: 0, paretoPending: 0 };
+        espMap[k].tot++;
+        if (t.status !== "pending") espMap[k].seen++;
+        else if (t.prio.includes("Diamante") || t.prio.includes("Alta")) espMap[k].paretoPending++;
+      }
+      document.getElementById("stats-specialty-tbody").innerHTML = Object.values(espMap).map(e => {
+        const pct = Math.round((e.seen / e.tot) * 100);
+        return `
+          <tr class="border-b" style="border-color: var(--border-color);">
+            <td class="py-2 px-3 text-xs" style="color: var(--text-muted);">${e.area}</td>
+            <td class="py-2 px-3 font-bold">${e.esp}</td>
+            <td class="py-2 px-3">${e.seen} / ${e.tot}</td>
+            <td class="py-2 px-3">${e.paretoPending > 0 ? `<b class="text-amber-600">${e.paretoPending} pendentes</b>` : `<span class="text-emerald-600 font-bold">✓ 0</span>`}</td>
+            <td class="py-2 px-3 font-bold">${pct}%</td>
+            <td class="py-2 px-3">
+              <div class="obsidian-progress-track">
+                <div class="obsidian-progress-fill" style="width: ${pct}%;"></div>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    // =========================================================================
+    // 8. MODAIS DE REGISTRO DE QUESTÕES, SUBRAMOS E METAS
+    // =========================================================================
+    function updateQuestionModalTopics() {
+      const macro = document.getElementById("mq-macro").value;
+      const datalist = document.getElementById("mq-topics-datalist");
+      const names = new Set();
+
+      for (const log of appState.qlogs) {
+        if (!macro || log.macro === macro) names.add(log.topic);
+      }
+      for (const t of appState.scheduleTopics) {
+        if (!macro || t.area === macro) names.add(t.title);
+      }
+
+      datalist.innerHTML = Array.from(names).sort().map(n => `<option value="${n}"></option>`).join("");
+    }
+
+    function openQuestionModal(prefillTopic = "", prefillMacro = "", prefillSubtopic = "", focusSubtopic = false) {
+      document.getElementById("mq-date").value = getTodayISO();
+      if (prefillMacro) document.getElementById("mq-macro").value = prefillMacro;
+      updateQuestionModalTopics();
+
+      document.getElementById("mq-topic").value = prefillTopic || "";
+      document.getElementById("mq-subtopic").value = prefillSubtopic || "";
+      document.getElementById("mq-feitas").value = "";
+      document.getElementById("mq-certas").value = "";
+      updateModalPreviewPct();
+
+      const modal = document.getElementById("modal-questions");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+
+      setTimeout(() => {
+        if (focusSubtopic) document.getElementById("mq-subtopic").focus();
+        else if (prefillTopic) document.getElementById("mq-feitas").focus();
+        else document.getElementById("mq-topic").focus();
+      }, 60);
+    }
+
+    function closeQuestionModal() {
+      const modal = document.getElementById("modal-questions");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function updateModalPreviewPct() {
+      const f = parseInt(document.getElementById("mq-feitas").value) || 0;
+      const c = parseInt(document.getElementById("mq-certas").value) || 0;
+      const pctEl = document.getElementById("mq-preview-pct");
+      const revEl = document.getElementById("mq-preview-rev");
+      if (f <= 0) {
+        pctEl.textContent = "--%";
+        revEl.textContent = "Próxima revisão: --";
+        return;
+      }
+      const pct = Math.round((c / f) * 100);
+      pctEl.textContent = `${pct}%`;
+      if (pct >= 85) revEl.textContent = "🟢 Revisão em +15 dias";
+      else if (pct >= 70) revEl.textContent = "🟡 Revisão em +7 dias";
+      else revEl.textContent = "🔴 Revisão em +3 dias";
+    }
+
+    function saveQuestionSession() {
+      const macro = document.getElementById("mq-macro").value;
+      const date = document.getElementById("mq-date").value || getTodayISO();
+      const mainTopic = document.getElementById("mq-topic").value.trim();
+      const subTopic = document.getElementById("mq-subtopic").value.trim();
+      const feitas = parseInt(document.getElementById("mq-feitas").value);
+      const certas = parseInt(document.getElementById("mq-certas").value);
+
+      if (!mainTopic) {
+        showToast("Digite ou selecione o nome da matéria!", "warn");
+        return;
+      }
+      if (!feitas || feitas <= 0 || isNaN(certas) || certas < 0 || certas > feitas) {
+        showToast("Verifique a quantidade de questões feitas e acertos!", "warn");
+        return;
+      }
+
+      const finalTopicName = subTopic ? subTopic : mainTopic;
+      const parentTopicName = subTopic ? mainTopic : (appState.parentLinks[normalizeKey(mainTopic)] || "");
+
+      if (subTopic) {
+        appState.parentLinks[normalizeKey(subTopic)] = mainTopic;
+      }
+      appState.topicMacroMap[normalizeKey(finalTopicName)] = macro;
+      if (parentTopicName) appState.topicMacroMap[normalizeKey(parentTopicName)] = macro;
+
+      appState.qlogs.push({
+        id: "q_" + Date.now(),
+        date,
+        macro,
+        area: "Geral",
+        topic: finalTopicName,
+        parentTopic: parentTopicName,
+        feitas,
+        certas,
+        score: 5
+      });
+
+      saveAppState();
+      closeQuestionModal();
+      refreshAllViews();
+      showToast(`Registrado: ${finalTopicName} (${certas}/${feitas})!`);
+    }
+
+    // Modal de Subramos / Realocação
+    function openSubbranchManagerModal() {
+      updateQuestionModalTopics();
+      document.getElementById("ms-child").value = "";
+      document.getElementById("ms-parent").value = "";
+      const m = document.getElementById("modal-subbranch");
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+    }
+
+    function closeSubbranchManagerModal() {
+      const m = document.getElementById("modal-subbranch");
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }
+
+    function saveSubbranchRelation() {
+      const child = document.getElementById("ms-child").value.trim();
+      const parent = document.getElementById("ms-parent").value.trim();
+      const macro = document.getElementById("ms-macro").value;
+
+      if (!child) {
+        showToast("Informe o nome da matéria!", "warn");
+        return;
+      }
+
+      const cKey = normalizeKey(child);
+      if (parent) {
+        appState.parentLinks[cKey] = parent;
+        appState.topicMacroMap[normalizeKey(parent)] = macro;
+      } else {
+        delete appState.parentLinks[cKey];
+      }
+      appState.topicMacroMap[cKey] = macro;
+
+      // Atualiza também nos logs existentes daquela matéria
+      for (const log of appState.qlogs) {
+        if (normalizeKey(log.topic) === cKey) {
+          log.macro = macro;
+          log.parentTopic = parent || "";
+        }
+      }
+
+      saveAppState();
+      closeSubbranchManagerModal();
+      refreshAllViews();
+      showToast(parent ? `"${child}" agora soma dentro de "${parent}"!` : `"${child}" alocado em ${macro}!`);
+    }
+
+    // Modal de Ajuste da Meta Diária
+    function openDailyGoalAdjustModal() {
+      const todayISO = getTodayISO();
+      const dailyMap = getDailyQuestionsMap();
+      document.getElementById("mdg-target").value = appState.dailyGoal || 40;
+      document.getElementById("mdg-today-manual").value = dailyMap[todayISO] || 0;
+      const m = document.getElementById("modal-daily-goal");
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+    }
+
+    function closeDailyGoalAdjustModal() {
+      const m = document.getElementById("modal-daily-goal");
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }
+
+    function saveDailyGoalAdjust() {
+      const newGoal = parseInt(document.getElementById("mdg-target").value) || 40;
+      const manualToday = parseInt(document.getElementById("mdg-today-manual").value) || 0;
+      appState.dailyGoal = newGoal;
+      appState.dailyManualCounts[getTodayISO()] = manualToday;
+      saveAppState();
+      closeDailyGoalAdjustModal();
+      refreshAllViews();
+      showToast("Meta diária atualizada!");
+    }
+
+    // Modal de Novo Tópico no Cronograma
+    function openNewTopicModal() {
+      const m = document.getElementById("modal-new-sched-topic");
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+    }
+    function closeNewTopicModal() {
+      const m = document.getElementById("modal-new-sched-topic");
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }
+    function saveNewScheduleTopic() {
+      const area = document.getElementById("mnt-area").value;
+      const esp = document.getElementById("mnt-esp").value.trim() || "Geral";
+      const sub = document.getElementById("mnt-sub").value.trim() || "Geral";
+      const title = document.getElementById("mnt-title").value.trim();
+      const prio = document.getElementById("mnt-prio").value;
+      const block = document.getElementById("mnt-block").value.trim() || "Extra";
+
+      if (!title) {
+        showToast("Digite o nome do tópico!", "warn");
+        return;
+      }
+
+      appState.scheduleTopics.push({
+        id: "t_custom_" + Date.now(),
+        area,
+        esp,
+        sub,
+        title,
+        prio,
+        block,
+        status: "pending",
+        completedAt: null
+      });
+      saveAppState();
+      closeNewTopicModal();
+      refreshAllViews();
+      showToast(`Tópico "${title}" adicionado ao cronograma!`);
+    }
+
+    // =========================================================================
+    // 9. BACKUP (.JSON) & IMPORTADOR / EXPORTADOR OBSIDIAN
+    // =========================================================================
+    function exportBackupJSON() {
+      const todayISO = getTodayISO();
+      appState.lastBackupDate = todayISO;
+      saveAppState();
+
+      const dataStr = JSON.stringify(appState, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Backup_MedFocus_R1_${todayISO}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      document.getElementById("last-backup-label").textContent = `Último backup: ${formatDateBR(todayISO)}`;
+      showToast("Arquivo de Backup (.json) salvo com sucesso!");
+    }
+
+    function importBackupJSON(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed.scheduleTopics || !parsed.qlogs) {
+            showToast("Arquivo JSON inválido!", "error");
+            return;
+          }
+          appState = parsed;
+          saveAppState();
+          refreshAllViews();
+          showToast("Backup restaurado com sucesso!");
+        } catch (err) {
+          showToast("Erro ao ler o arquivo de backup!", "error");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function importFromObsidianText() {
+      const raw = document.getElementById("obsidian-import-textarea").value;
+      if (!raw.trim()) {
+        showToast("Cole o conteúdo das suas notas primeiro!", "warn");
+        return;
+      }
+
+      let importedQlogs = 0;
+      let importedChecks = 0;
+
+      // 1. Procura padrões [qlog:: YYYY-MM-DD | Macro | Area | Tema | Feitas | Certas | Score]
+      const regexQlog = /\[qlog::\s*([^\]]+)\]/gi;
+      let m;
+      while ((m = regexQlog.exec(raw)) !== null) {
+        const parts = m[1].split("|").map(s => s.trim());
+        if (parts.length >= 6) {
+          const [dLog, macro, area, tema, feitasStr, certasStr, scoreStr] = parts;
+          const feitas = parseInt(feitasStr) || 0;
+          const certas = parseInt(certasStr) || 0;
+          if (feitas > 0) {
+            appState.qlogs.push({
+              id: "q_imp_" + Date.now() + "_" + importedQlogs,
+              date: /^\d{4}-\d{2}-\d{2}$/.test(dLog) ? dLog : getTodayISO(),
+              macro: macro || "Clínica Médica",
+              area: area || "Geral",
+              topic: tema,
+              parentTopic: appState.parentLinks[normalizeKey(tema)] || "",
+              feitas,
+              certas,
+              score: parseInt(scoreStr) || 5
+            });
+            importedQlogs++;
+          }
+        }
+      }
+
+      // 2. Procura linhas de checklist "- [x] Nome da Aula"
+      for (const line of raw.split("\n")) {
+        const matchTask = line.trim().match(/^[\*-]\s*\\?\[([xX\/])\\?\]\s*(.+)$/);
+        if (matchTask) {
+          const symbol = matchTask[1].toLowerCase();
+          const titlePart = matchTask[2].split("|")[0].trim();
+          const key = normalizeKey(titlePart);
+          const found = appState.scheduleTopics.find(t => normalizeKey(t.title) === key);
+          if (found) {
+            found.status = symbol === "/" ? "bagagem" : "bagagem";
+            found.completedAt = getTodayISO();
+            importedChecks++;
+          }
+        }
+      }
+
+      saveAppState();
+      refreshAllViews();
+      document.getElementById("obsidian-import-textarea").value = "";
+      showToast(`Importados: ${importedQlogs} registros de questões e ${importedChecks} tópicos marcados!`);
+    }
+
+    function generateObsidianExport(type) {
+      const outEl = document.getElementById("obsidian-export-textarea");
+      if (type === "qlog") {
+        const lines = appState.qlogs.map(q => {
+          const pct = q.feitas > 0 ? Math.round((q.certas / q.feitas) * 100) : 0;
+          const topicStr = q.parentTopic ? `${q.parentTopic} › ${q.topic}` : q.topic;
+          return `- 📁 [qlog:: ${q.date} | ${q.macro} | ${q.area || 'Geral'} | ${topicStr} | ${q.feitas} | ${q.certas} | ${q.score || 5}] — **${topicStr}**: ${q.certas}/${q.feitas} (${pct}%)`;
+        });
+        outEl.value = lines.join("\n");
+      } else if (type === "matriz") {
+        const agg = buildQuestionAggregates();
+        const byMacro = {};
+        for (const n of agg.allNodes.filter(x => !x.isChild)) {
+          if (!byMacro[n.macro]) byMacro[n.macro] = [];
+          byMacro[n.macro].push(n);
+        }
+        let md = "";
+        for (const [mName, list] of Object.entries(byMacro)) {
+          md += `# ${mName}\n## Geral\n`;
+          for (const item of list) {
+            md += `- ${item.name} | 5\n`;
+            for (const cKey of item.childrenKeys) {
+              const child = agg.nodesMap[cKey];
+              if (child) md += `\t- ${child.name} | 5\n`;
+            }
+          }
+          md += "\n";
+        }
+        outEl.value = md.trim();
+      } else if (type === "checklist") {
+        let md = "";
+        let curArea = "", curEsp = "", curSub = "";
+        for (const t of appState.scheduleTopics) {
+          if (t.area !== curArea) { curArea = t.area; md += `\n# ${curArea}\n`; }
+          if (t.esp !== curEsp) { curEsp = t.esp; md += `\n## ${curEsp}\n`; }
+          if (t.sub !== curSub) { curSub = t.sub; md += `\n### ${curSub}\n`; }
+          const mark = t.status === "done" ? "x" : (t.status === "bagagem" ? "/" : " ");
+          md += `- [${mark}] ${t.title} | ${t.prio} | ${t.block}\n`;
+        }
+        outEl.value = md.trim();
+      }
+    }
+
+    function copyExportTextarea() {
+      const outEl = document.getElementById("obsidian-export-textarea");
+      if (!outEl.value) {
+        showToast("Gere o Markdown primeiro clicando em um dos botões!", "warn");
+        return;
+      }
+      outEl.select();
+      document.execCommand("copy");
+      showToast("Markdown copiado para a área de transferência!");
+    }
+
+    // Opções de Reset
+    function openResetConfirmModal() {
+      const m = document.getElementById("modal-reset");
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+    }
+    function closeResetConfirmModal() {
+      const m = document.getElementById("modal-reset");
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }
+    function resetOnlyQuestions() {
+      appState.qlogs = [];
+      appState.dailyManualCounts = {};
+      saveAppState();
+      closeResetConfirmModal();
+      refreshAllViews();
+      showToast("Histórico de questões zerado!");
+    }
+    function restoreInitialObsidianSnapshot() {
+      appState.qlogs = JSON.parse(JSON.stringify(INITIAL_QLOGS));
+      appState.scheduleTopics = buildInitialScheduleTopics();
+      saveAppState();
+      closeResetConfirmModal();
+      refreshAllViews();
+      showToast("Dados iniciais do seu Obsidian restaurados!");
+    }
+
+    // =========================================================================
+    // 10. NAVEGAÇÃO ENTRE ABAS, TEMA E INICIALIZAÇÃO
+    // =========================================================================
+    function switchTab(tabId) {
+      const tabs = ["questoes", "cronograma", "estatisticas", "backup"];
+      for (const t of tabs) {
+        const sec = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tabId) {
+          sec.classList.remove("hidden");
+          sec.classList.add("flex");
+          btn.classList.add("active");
+        } else {
+          sec.classList.add("hidden");
+          sec.classList.remove("flex");
+          btn.classList.remove("active");
+        }
+      }
+      refreshAllViews();
+    }
+
+    function toggleDarkMode() {
+      appState.darkMode = !appState.darkMode;
+      applyTheme();
+      saveAppState();
+    }
+
+    function applyTheme() {
+      const root = document.documentElement;
+      const btn = document.getElementById("theme-toggle-btn");
+      if (appState.darkMode) {
+        root.classList.add("dark");
+        if (btn) btn.textContent = "☀️";
+      } else {
+        root.classList.remove("dark");
+        if (btn) btn.textContent = "🌙";
+      }
+    }
+
+    function refreshAllViews() {
+      const agg = buildQuestionAggregates();
+      renderSidebarWidgets(agg);
+      renderQuestionsTable(agg);
+      renderScheduleView();
+      renderStatisticsView(agg);
+      if (appState.lastBackupDate) {
+        document.getElementById("last-backup-label").textContent = `Último backup: ${formatDateBR(appState.lastBackupDate)}`;
+      }
+    }
+
+    window.onload = function () {
+      loadAppState();
+      applyTheme();
+      refreshAllViews();
+    };
+  </script>
+</body>
+</html>
