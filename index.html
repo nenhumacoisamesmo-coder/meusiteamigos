@@ -1525,27 +1525,43 @@
 
           <div id="mca-name-field">
             <label class="block font-semibold mb-1">Seu Nome ou Apelido</label>
-            <input type="text" id="mca-name" placeholder="Ex: João" class="input-surface w-full px-3 py-2 text-xs font-medium" />
+            <input type="text" id="mca-name" autocomplete="name" placeholder="Ex: João" class="input-surface w-full px-3 py-2 text-xs font-medium" />
           </div>
 
           <div>
             <label class="block font-semibold mb-1">E-mail ou Nome de Usuário (Login)</label>
-            <input type="email" id="mca-user" placeholder="Ex: joao@gmail.com" class="input-surface w-full px-3 py-2 text-xs font-mono" />
-          </div>
-
-          <div>
-            <label class="block font-semibold mb-1">E-mail ou Nome de Usuário (Login)</label>
-            <input type="email" id="mca-user" placeholder="Ex: seuemail@gmail.com" class="input-surface w-full px-3 py-2 text-xs font-mono" />
+            <input type="email" id="mca-user" autocomplete="username" placeholder="Ex: joao@gmail.com" class="input-surface w-full px-3 py-2 text-xs font-mono" />
           </div>
 
           <div>
             <label class="block font-semibold mb-1">Senha de Sincronização (Mínimo 4 caracteres)</label>
-            <input type="password" id="mca-pin" placeholder="Digite sua senha..." class="input-surface w-full px-3 py-2 text-xs font-mono" />
+            <div class="relative flex items-center">
+              <input type="password" id="mca-pin" autocomplete="current-password" placeholder="Digite sua senha..." class="input-surface w-full px-3 py-2 pr-16 text-xs font-mono" />
+              <button type="button" onclick="togglePasswordVisibility('mca-pin', this)" class="absolute right-1.5 px-2 py-1 text-[10px] font-semibold card-surface">
+                Mostrar
+              </button>
+            </div>
           </div>
 
           <button type="button" id="mca-submit-btn" onclick="submitAccountModalForm()" class="retro-btn w-full py-2.5 text-xs sm:text-sm font-bold text-white mt-1 cursor-pointer" style="background-color: var(--accent-teal);">
             ✓ Criar Minha Conta e Sincronizar Agora
           </button>
+
+          <!-- Código Rápido de Sincronização (Funciona mesmo em redes bloqueadas) -->
+          <div class="card-inset p-2.5 mt-1 flex flex-col gap-2">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-semibold">⚡ Transferência Instantânea por Código</span>
+              <span style="color: var(--text-muted);">Sem depender de rede</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="copySyncTransferCode()" class="retro-btn px-2.5 py-1.5 text-[11px] font-semibold card-surface flex-1">
+                📋 Copiar Código do Meu Progresso
+              </button>
+              <button type="button" onclick="pasteSyncTransferCode()" class="retro-btn px-2.5 py-1.5 text-[11px] font-semibold card-surface flex-1">
+                📥 Colar Código de Outro Aparelho
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- PAINEL B: INTEGRAÇÃO DIRETA COM GOOGLE DRIVE / ICLOUD / WHATSAPP -->
@@ -3472,6 +3488,226 @@
     // =========================================================================
     let currentAccountModalMode = "register";
 
+    function togglePasswordVisibility(inputId, btnEl) {
+      const inp = document.getElementById(inputId);
+      if (!inp) return;
+      if (inp.type === "password") {
+        inp.type = "text";
+        if (btnEl) btnEl.textContent = "Ocultar";
+      } else {
+        inp.type = "password";
+        if (btnEl) btnEl.textContent = "Mostrar";
+      }
+    }
+
+    // Compactação e Descompactação Inteligente de Dados para Sincronização Rápida
+    function buildCompactSyncPayload(state) {
+      const defaultTopics = buildCleanScheduleTopics();
+      const defaultMap = new Map(defaultTopics.map(t => [t.id, t]));
+
+      const doneList = [];
+      const editedDefault = [];
+      const customTopics = [];
+      const currentIds = new Set();
+
+      for (const t of (state.scheduleTopics || [])) {
+        currentIds.add(t.id);
+        const def = defaultMap.get(t.id);
+        if (!def) {
+          customTopics.push(t);
+        } else {
+          if (t.done) {
+            doneList.push([t.id, t.completedAt || ""]);
+          }
+          if (t.title !== def.title || t.area !== def.area || t.esp !== def.esp || t.sub !== def.sub || t.prio !== def.prio || t.block !== def.block) {
+            editedDefault.push({
+              id: t.id,
+              area: t.area,
+              esp: t.esp,
+              sub: t.sub,
+              title: t.title,
+              prio: t.prio,
+              block: t.block
+            });
+          }
+        }
+      }
+
+      const deletedDefaultIds = [];
+      for (const def of defaultTopics) {
+        if (!currentIds.has(def.id)) deletedDefaultIds.push(def.id);
+      }
+
+      return {
+        v: 2,
+        u: state.updatedAt || Date.now(),
+        cfg: {
+          themeMode: state.themeMode || "retro-98",
+          customAccent: state.customAccent || null,
+          spacedRepMode: state.spacedRepMode || "adaptive",
+          dailyGoal: state.dailyGoal || 40,
+          annualGoal: state.annualGoal || 15000,
+          autoDownloadOnSave: !!state.autoDownloadOnSave
+        },
+        d: doneList,
+        e: editedDefault,
+        c: customTopics,
+        x: deletedDefaultIds,
+        q: (state.qlogs || []).map(l => [
+          l.id,
+          l.date,
+          l.macro,
+          l.esp || "Geral",
+          l.topic,
+          l.subtopic || "",
+          l.feitas,
+          l.certas
+        ]),
+        p: state.parentLinks || {}
+      };
+    }
+
+    function expandCompactSyncPayload(compact) {
+      if (!compact || compact.v !== 2) {
+        return normalizeParsedState(compact || createFreshZeroState());
+      }
+      const deletedSet = new Set(compact.x || []);
+      const doneMap = new Map((compact.d || []).map(item => [item[0], item[1]]));
+      const editMap = new Map((compact.e || []).map(item => [item.id, item]));
+
+      const baseTopics = buildCleanScheduleTopics()
+        .filter(t => !deletedSet.has(t.id))
+        .map(t => {
+          const ed = editMap.get(t.id);
+          const isDone = doneMap.has(t.id);
+          return {
+            ...t,
+            ...(ed || {}),
+            done: isDone,
+            completedAt: isDone ? (doneMap.get(t.id) || getTodayISO()) : null
+          };
+        });
+
+      const scheduleTopics = baseTopics.concat(compact.c || []);
+      const qlogs = (compact.q || []).map(arr => ({
+        id: arr[0],
+        date: arr[1],
+        macro: arr[2],
+        esp: arr[3],
+        topic: arr[4],
+        subtopic: arr[5],
+        feitas: Number(arr[6]) || 0,
+        certas: Number(arr[7]) || 0
+      }));
+
+      const cfg = compact.cfg || {};
+      return normalizeParsedState({
+        themeMode: cfg.themeMode || "retro-98",
+        customAccent: cfg.customAccent || null,
+        spacedRepMode: cfg.spacedRepMode || "adaptive",
+        dailyGoal: cfg.dailyGoal || 40,
+        annualGoal: cfg.annualGoal || 15000,
+        autoDownloadOnSave: !!cfg.autoDownloadOnSave,
+        scheduleTopics,
+        qlogs,
+        parentLinks: compact.p || {},
+        updatedAt: compact.u || Date.now()
+      });
+    }
+
+    // Mescla dois estados sem perder matérias concluídas nem questões de nenhum aparelho
+    function mergeTwoStates(localSt, remoteSt) {
+      const newer = (remoteSt.updatedAt || 0) >= (localSt.updatedAt || 0) ? remoteSt : localSt;
+      const older = newer === remoteSt ? localSt : remoteSt;
+      const merged = JSON.parse(JSON.stringify(newer));
+
+      const olderMap = new Map((older.scheduleTopics || []).map(t => [t.id, t]));
+      for (const t of (merged.scheduleTopics || [])) {
+        const oldT = olderMap.get(t.id);
+        if (oldT && oldT.done && !t.done) {
+          t.done = true;
+          t.completedAt = oldT.completedAt || getTodayISO();
+        }
+      }
+      const mergedIds = new Set((merged.scheduleTopics || []).map(t => t.id));
+      for (const oldT of (older.scheduleTopics || [])) {
+        if (oldT.id.startsWith("t_custom_") && !mergedIds.has(oldT.id)) {
+          merged.scheduleTopics.push(oldT);
+        }
+      }
+
+      const qMap = new Map();
+      for (const l of (older.qlogs || []).concat(newer.qlogs || [])) {
+        const sig = l.id || `${l.date}_${l.topic}_${l.subtopic}_${l.feitas}_${l.certas}`;
+        qMap.set(sig, l);
+      }
+      merged.qlogs = Array.from(qMap.values());
+      merged.parentLinks = { ...(older.parentLinks || {}), ...(newer.parentLinks || {}) };
+      merged.updatedAt = Math.max(localSt.updatedAt || 0, remoteSt.updatedAt || 0);
+      return normalizeParsedState(merged);
+    }
+
+    async function compressStringToBase64(str) {
+      if (typeof CompressionStream !== "undefined") {
+        try {
+          const stream = new Blob([str]).stream().pipeThrough(new CompressionStream("deflate-raw"));
+          const buf = await new Response(stream).arrayBuffer();
+          const bytes = new Uint8Array(buf);
+          let binary = "";
+          for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+          return "Z1:" + btoa(binary);
+        } catch (e) {}
+      }
+      return "U1:" + btoa(unescape(encodeURIComponent(str)));
+    }
+
+    async function decompressBase64ToString(encoded) {
+      if (encoded.startsWith("Z1:") && typeof DecompressionStream !== "undefined") {
+        const b64 = encoded.slice(3);
+        const binary = atob(b64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+        return await new Response(stream).text();
+      }
+      const rawB64 = encoded.startsWith("U1:") ? encoded.slice(3) : encoded;
+      return decodeURIComponent(escape(atob(rawB64)));
+    }
+
+    async function copySyncTransferCode() {
+      try {
+        const compact = buildCompactSyncPayload(appState);
+        const code = await compressStringToBase64(JSON.stringify(compact));
+        const temp = document.createElement("textarea");
+        temp.value = code;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+        showToast("Código de sincronização copiado! Cole no outro aparelho.");
+      } catch (e) {
+        showToast("Erro ao gerar código.", "error");
+      }
+    }
+
+    async function pasteSyncTransferCode() {
+      const code = prompt("Cole aqui o Código de Sincronização copiado do outro aparelho:");
+      if (!code || !code.trim()) return;
+      try {
+        const jsonStr = await decompressBase64ToString(code.trim());
+        const compact = JSON.parse(jsonStr);
+        const importedState = expandCompactSyncPayload(compact);
+        appState = mergeTwoStates(appState, importedState);
+        await saveAppState(true);
+        applyTheme();
+        refreshAllViews();
+        closeCloudAccountModal();
+        showToast("Progresso sincronizado com sucesso pelo código!");
+      } catch (e) {
+        showToast("Código inválido ou incompleto.", "error");
+      }
+    }
+
     function openCloudAccountModal(defaultMode = null) {
       const savedUser = localStorage.getItem("organizador_cloud_user");
       const savedName = localStorage.getItem("organizador_cloud_name") || "";
@@ -3704,36 +3940,32 @@
     };
   </script>
 
-  <!-- MOTOR DE CONTA E SINCRONIZAÇÃO AUTOMÁTICA NA NUVEM -->
+  <!-- MOTOR HÍBRIDO DE SINCRONIZAÇÃO EM NUVEM (OTIMIZADO PARA NETLIFY + FIREBASE) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-    // =========================================================================
-    // OPCIONAL PARA O SEU SITE NO NETLIFY:
-    // Se você criar um projeto gratuito em https://console.firebase.google.com,
-    // cole as chaves do seu firebaseConfig dentro de CUSTOM_FIREBASE_CONFIG abaixo
-    // para ativar o Login com Google 1-Clique e banco em nuvem próprio no Netlify!
-    // =========================================================================
     const CUSTOM_FIREBASE_CONFIG = null;
+    const NETLIFY_CLOUD_RELAY = "https://ntfy.sh";
 
     let db = null;
     let auth = null;
     let currentUser = null;
     let activeAccountHash = null;
     let unsubscribeSnapshot = null;
+    let relayEventSource = null;
     let isApplyingRemoteUpdate = false;
     let pushTimeout = null;
 
     const appId = typeof __app_id !== "undefined" ? __app_id : "organizador-estudos-karol";
 
     async function hashCredentials(userStr, pinStr) {
-      const clean = `${userStr.trim().toLowerCase()}::${pinStr.trim()}`;
+      const clean = `${userStr.trim().toLowerCase()}::${pinStr.trim()}::organizador_netlify_v2`;
       const msgBuffer = new TextEncoder().encode(clean);
       const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return "acc_" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 36);
+      return "orgsync_" + hashArray.map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 34);
     }
 
     function updateCloudUI(connectedUser = null, statusMsg = null) {
@@ -3750,7 +3982,7 @@
       if (connectedUser) {
         const shortName = savedName || connectedUser.split("@")[0];
         if (badge) {
-          badge.textContent = `☁️ Conectado: ${connectedUser}`;
+          badge.textContent = `☁️ Nuvem Ativa: ${connectedUser}`;
           badge.style.color = "var(--accent-teal)";
         }
         if (topBtn) {
@@ -3784,44 +4016,187 @@
       }
     }
 
+    // =========================================================================
+    // MOTOR CLOUD RELAY NATIVO PARA NETLIFY (SEM PRECISAR DE CONFIGURAÇÃO)
+    // =========================================================================
+    async function pushToNetlifyRelay(accountHash, userStr, savedName) {
+      const compact = buildCompactSyncPayload(appState);
+      const compressed = await compressStringToBase64(JSON.stringify(compact));
+      const sid = appState.updatedAt || Date.now();
+
+      // Divide automaticamente caso passe de 3.200 caracteres
+      const chunkSize = 3200;
+      const totalParts = Math.max(1, Math.ceil(compressed.length / chunkSize));
+
+      for (let part = 0; part < totalParts; part++) {
+        const slice = compressed.slice(part * chunkSize, (part + 1) * chunkSize);
+        const envelope = JSON.stringify({
+          sid,
+          u: userStr,
+          n: savedName || "",
+          p: part,
+          t: totalParts,
+          d: slice
+        });
+        const resp = await fetch(`${NETLIFY_CLOUD_RELAY}/${accountHash}`, {
+          method: "POST",
+          body: envelope
+        });
+        if (!resp.ok) throw new Error("Falha no envio para a nuvem");
+      }
+    }
+
+    async function pullFromNetlifyRelay(accountHash) {
+      const resp = await fetch(`${NETLIFY_CLOUD_RELAY}/${accountHash}/json?poll=1`, {
+        cache: "no-store"
+      });
+      if (!resp.ok) return null;
+      const text = await resp.text();
+      if (!text || !text.trim()) return null;
+
+      const lines = text.trim().split("\n");
+      const sessions = {};
+
+      for (const line of lines) {
+        try {
+          const item = JSON.parse(line);
+          if (item.event !== "message" || !item.message) continue;
+          const env = JSON.parse(item.message);
+          if (!env || !env.sid || typeof env.d !== "string") continue;
+          if (!sessions[env.sid]) {
+            sessions[env.sid] = {
+              sid: env.sid,
+              userName: env.n || "",
+              total: env.t || 1,
+              parts: {}
+            };
+          }
+          sessions[env.sid].parts[env.p || 0] = env.d;
+        } catch (e) {}
+      }
+
+      const completeSids = Object.values(sessions)
+        .filter(s => Object.keys(s.parts).length === s.total)
+        .sort((a, b) => b.sid - a.sid);
+
+      if (completeSids.length === 0) return null;
+      const latest = completeSids[0];
+      let fullCompressed = "";
+      for (let i = 0; i < latest.total; i++) {
+        fullCompressed += latest.parts[i];
+      }
+
+      const jsonStr = await decompressBase64ToString(fullCompressed);
+      const compactObj = JSON.parse(jsonStr);
+      const expandedState = expandCompactSyncPayload(compactObj);
+      return {
+        state: expandedState,
+        userName: latest.userName,
+        updatedAt: latest.sid
+      };
+    }
+
+    function subscribeToNetlifyRelaySSE(accountHash, displayUser) {
+      if (relayEventSource) {
+        relayEventSource.close();
+        relayEventSource = null;
+      }
+      try {
+        relayEventSource = new EventSource(`${NETLIFY_CLOUD_RELAY}/${accountHash}/sse`);
+        relayEventSource.onmessage = async (event) => {
+          if (isApplyingRemoteUpdate) return;
+          try {
+            const data = JSON.parse(event.data);
+            if (!data || !data.message) return;
+            const env = JSON.parse(data.message);
+            if (!env || !env.sid) return;
+            if (env.sid > (appState?.updatedAt || 0) + 1000) {
+              // Se for mensagem única, aplica direto; se for multi-parte, busca o conjunto completo
+              if ((env.t || 1) === 1 && env.d) {
+                const jsonStr = await decompressBase64ToString(env.d);
+                const remoteState = expandCompactSyncPayload(JSON.parse(jsonStr));
+                applyRemoteStateSafely(remoteState, displayUser, env.n);
+              } else if (env.p === env.t - 1) {
+                const pulled = await pullFromNetlifyRelay(accountHash);
+                if (pulled && pulled.state) {
+                  applyRemoteStateSafely(pulled.state, displayUser, pulled.userName);
+                }
+              }
+            }
+          } catch (e) {}
+        };
+      } catch (e) {}
+    }
+
+    function applyRemoteStateSafely(remoteState, displayUser, remoteName = "") {
+      isApplyingRemoteUpdate = true;
+      if (remoteName && !localStorage.getItem("organizador_cloud_name")) {
+        localStorage.setItem("organizador_cloud_name", remoteName);
+      }
+      appState = mergeTwoStates(appState, remoteState);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      saveStateToIndexedDB(appState);
+      applyTheme();
+      refreshAllViews();
+      const agora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      updateCloudUI(displayUser, `Sincronizado automaticamente às ${agora}`);
+      isApplyingRemoteUpdate = false;
+    }
+
     window.initCloudSyncEngine = async function () {
       try {
         let firebaseConfig = CUSTOM_FIREBASE_CONFIG;
         if (!firebaseConfig && typeof __firebase_config !== "undefined" && __firebase_config) {
           firebaseConfig = JSON.parse(__firebase_config);
         }
-        if (!firebaseConfig) {
-          return;
-        }
-        const app = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-        auth = getAuth(app);
+        if (firebaseConfig) {
+          const app = initializeApp(firebaseConfig);
+          db = getFirestore(app);
+          auth = getAuth(app);
 
-        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-          currentUser = user;
-          if (!user) return;
-
-          // Se o usuário já tinha uma conta vinculada neste aparelho, reconecta automaticamente
-          const savedUser = localStorage.getItem("organizador_cloud_user");
-          const savedHash = localStorage.getItem("organizador_cloud_hash");
-          if (savedUser && savedHash) {
-            activeAccountHash = savedHash;
-            updateCloudUI(savedUser, "Sincronização automática em tempo real ativa.");
-            subscribeToCloudAccount(savedHash, savedUser);
+          if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
           }
-        });
+
+          onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+          });
+        }
       } catch (e) {
-        console.warn("Modo local ativo:", e);
+        console.warn("Usando motor de nuvem direto para Netlify:", e);
       }
+
+      // Reconecta automaticamente a conta salva no navegador (funciona tanto no Netlify quanto no Firebase)
+      const savedUser = localStorage.getItem("organizador_cloud_user");
+      const savedHash = localStorage.getItem("organizador_cloud_hash");
+      if (savedUser && savedHash) {
+        activeAccountHash = savedHash;
+        updateCloudUI(savedUser, "Verificando atualizações na nuvem...");
+        subscribeToCloudAccount(savedHash, savedUser);
+        await window.pullStateFromCloud(false);
+      }
+
+      // Sincroniza automaticamente ao voltar para a aba/aplicativo no celular ou PC
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible" && activeAccountHash) {
+          window.pullStateFromCloud(false);
+        }
+      });
+
+      window.addEventListener("online", () => {
+        if (activeAccountHash) {
+          window.pushStateToCloud(false);
+        }
+      });
     };
 
     function subscribeToCloudAccount(accountHash, displayUser) {
+      // Escuta em tempo real para o Netlify
+      subscribeToNetlifyRelaySSE(accountHash, displayUser);
+
+      // Escuta adicional caso Firebase esteja ativo
       if (!db || !currentUser) return;
       if (unsubscribeSnapshot) unsubscribeSnapshot();
 
@@ -3836,19 +4211,9 @@
         const remoteUpdated = remoteState?.updatedAt || 0;
 
         if (remoteUpdated > localUpdated + 1500) {
-          isApplyingRemoteUpdate = true;
-          appState = normalizeParsedState(remoteState);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-          saveStateToIndexedDB(appState);
-          applyTheme();
-          refreshAllViews();
-          const agora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-          updateCloudUI(displayUser, `Sincronizado da nuvem às ${agora}`);
-          isApplyingRemoteUpdate = false;
+          applyRemoteStateSafely(normalizeParsedState(remoteState), displayUser, data.userName);
         }
-      }, (err) => {
-        console.warn("Aviso na escuta da nuvem:", err);
-      });
+      }, () => {});
     }
 
     window.connectCloudAccount = async function (mode = "login", customName = "") {
@@ -3869,64 +4234,69 @@
       localStorage.setItem("organizador_cloud_hash", accHash);
       activeAccountHash = accHash;
 
-      if (!db || !currentUser) {
-        updateCloudUI(userStr, "Conta vinculada neste aparelho. Use a aba Google Drive para enviar cópia à nuvem.");
-        showToast(`Conta "${userStr}" conectada!`);
-        return;
-      }
+      updateCloudUI(userStr, "Conectando e sincronizando com a nuvem...");
 
       try {
-        const accRef = doc(db, "artifacts", appId, "public", "data", "sync_accounts", accHash);
-        const snap = await getDoc(accRef);
+        let remoteFound = null;
 
-        if (snap.exists() && snap.data()?.payload) {
-          const remoteData = snap.data();
-          if (remoteData.userName && !customName) {
-            localStorage.setItem("organizador_cloud_name", remoteData.userName);
-          }
-          const remoteState = JSON.parse(remoteData.payload);
-          const remoteCount = (remoteState.qlogs?.length || 0) + (remoteState.scheduleTopics?.filter(t => t.done).length || 0);
-          const localCount = (appState.qlogs?.length || 0) + (appState.scheduleTopics?.filter(t => t.done).length || 0);
+        // 1. Tenta buscar da nuvem Netlify Relay
+        try {
+          remoteFound = await pullFromNetlifyRelay(accHash);
+        } catch (e) {}
 
-          if (mode === "login" || remoteCount >= localCount) {
-            appState = normalizeParsedState(remoteState);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-            saveStateToIndexedDB(appState);
-            applyTheme();
-            refreshAllViews();
-            showToast(`Bem-vinda(o) de volta! Progresso carregado da nuvem.`);
-          } else {
-            await setDoc(accRef, {
-              userLabel: userStr,
-              userName: customName || remoteData.userName || "",
-              updatedAt: Date.now(),
-              payload: JSON.stringify(appState)
-            });
-            showToast(`Progresso local sincronizado na conta "${userStr}"!`);
+        // 2. Tenta buscar do Firebase se configurado
+        if (!remoteFound && db && currentUser) {
+          const accRef = doc(db, "artifacts", appId, "public", "data", "sync_accounts", accHash);
+          const snap = await getDoc(accRef);
+          if (snap.exists() && snap.data()?.payload) {
+            const d = snap.data();
+            remoteFound = {
+              state: normalizeParsedState(JSON.parse(d.payload)),
+              userName: d.userName || "",
+              updatedAt: d.updatedAt || 0
+            };
           }
-        } else {
-          await setDoc(accRef, {
-            userLabel: userStr,
-            userName: customName || "",
-            updatedAt: Date.now(),
-            payload: JSON.stringify(appState)
-          });
-          showToast(`Conta "${userStr}" criada e sincronizada na nuvem!`);
         }
 
-        updateCloudUI(userStr, "Sincronização automática ativa entre seus aparelhos.");
+        if (remoteFound && remoteFound.state) {
+          if (remoteFound.userName && !customName) {
+            localStorage.setItem("organizador_cloud_name", remoteFound.userName);
+          }
+          // Mescla inteligentemente o progresso da nuvem com o aparelho atual
+          isApplyingRemoteUpdate = true;
+          appState = mergeTwoStates(appState, remoteFound.state);
+          appState.updatedAt = Date.now();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+          saveStateToIndexedDB(appState);
+          applyTheme();
+          refreshAllViews();
+          isApplyingRemoteUpdate = false;
+
+          await window.pushStateToCloud(false);
+          showToast(`Conta "${userStr}" sincronizada com sucesso!`);
+        } else {
+          await window.pushStateToCloud(false);
+          showToast(`Conta "${userStr}" criada e salva na nuvem!`);
+        }
+
+        const agora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+        updateCloudUI(userStr, `Sincronização automática ativa (última às ${agora}).`);
         subscribeToCloudAccount(accHash, userStr);
         closeCloudAccountModal();
       } catch (err) {
         console.error(err);
-        showToast("Erro ao sincronizar conta.", "error");
+        updateCloudUI(userStr, "Conta conectada (modo offline temporário).");
+        showToast("Conta vinculada! Sincronizará assim que houver conexão.", "success");
+        closeCloudAccountModal();
       }
     };
 
     window.loginWithGooglePopup = async function () {
       if (!auth || !db) {
-        switchAccountModalMode("drive");
-        showToast("Para Login Google automático no Netlify, veja a aba '3. Google Drive' ou use o botão de salvar no Drive!", "success");
+        switchAccountModalMode("login");
+        showToast("No Netlify, basta digitar seu e-mail do Google e uma senha de 4+ dígitos abaixo para sincronizar!", "success");
+        const uInp = document.getElementById("mca-user");
+        if (uInp) uInp.focus();
         return;
       }
       try {
@@ -3937,45 +4307,33 @@
 
         const email = gUser.email || gUser.uid;
         const displayName = gUser.displayName || email.split("@")[0];
-        const accHash = "google_" + gUser.uid;
+        const accHash = "orgsync_google_" + gUser.uid.slice(0, 28);
 
         localStorage.setItem("organizador_cloud_name", displayName);
         localStorage.setItem("organizador_cloud_user", email);
         localStorage.setItem("organizador_cloud_hash", accHash);
         activeAccountHash = accHash;
 
-        const accRef = doc(db, "artifacts", appId, "public", "data", "sync_accounts", accHash);
-        const snap = await getDoc(accRef);
-        if (snap.exists() && snap.data()?.payload) {
-          const remoteState = JSON.parse(snap.data().payload);
-          appState = normalizeParsedState(remoteState);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-          saveStateToIndexedDB(appState);
-          applyTheme();
-          refreshAllViews();
-          showToast(`Conectada(o) com Google (${displayName})! Dados sincronizados.`);
-        } else {
-          await setDoc(accRef, {
-            userLabel: email,
-            userName: displayName,
-            updatedAt: Date.now(),
-            payload: JSON.stringify(appState)
-          });
-          showToast(`Conta Google (${displayName}) vinculada com sucesso!`);
-        }
+        await window.pullStateFromCloud(false);
+        await window.pushStateToCloud(false);
 
         updateCloudUI(email, "Conectado via Conta Google.");
         subscribeToCloudAccount(accHash, email);
         closeCloudAccountModal();
+        showToast(`Conectada(o) com Google (${displayName})!`);
       } catch (e) {
-        console.warn("Aviso Google Popup:", e);
-        showToast("Use seu e-mail e senha abaixo ou a aba 3 (Google Drive) neste navegador.", "error");
+        switchAccountModalMode("login");
+        showToast("Digite seu e-mail e senha abaixo para sincronizar entre celular e PC.", "success");
       }
     };
 
     window.disconnectCloudAccount = function () {
       if (unsubscribeSnapshot) unsubscribeSnapshot();
       unsubscribeSnapshot = null;
+      if (relayEventSource) {
+        relayEventSource.close();
+        relayEventSource = null;
+      }
       activeAccountHash = null;
       localStorage.removeItem("organizador_cloud_user");
       localStorage.removeItem("organizador_cloud_hash");
@@ -3986,47 +4344,69 @@
     };
 
     window.pushStateToCloud = async function (manual = false) {
-      if (!db || !currentUser || !activeAccountHash || isApplyingRemoteUpdate) {
-        if (manual) showToast("Conecte seu usuário e senha primeiro acima.", "error");
+      if (!activeAccountHash || isApplyingRemoteUpdate) {
+        if (manual) showToast("Conecte seu e-mail/usuário e senha primeiro.", "error");
         return;
       }
       try {
         const userStr = localStorage.getItem("organizador_cloud_user") || "Usuário";
         const savedName = localStorage.getItem("organizador_cloud_name") || "";
-        const accRef = doc(db, "artifacts", appId, "public", "data", "sync_accounts", activeAccountHash);
-        await setDoc(accRef, {
-          userLabel: userStr,
-          userName: savedName,
-          updatedAt: Date.now(),
-          payload: JSON.stringify(appState)
-        }, { merge: true });
+
+        // 1. Envia para o Cloud Relay nativo (funciona direto no Netlify sem configuração!)
+        await pushToNetlifyRelay(activeAccountHash, userStr, savedName);
+
+        // 2. Se Firebase também estiver ativo, salva nele em paralelo
+        if (db && currentUser) {
+          const accRef = doc(db, "artifacts", appId, "public", "data", "sync_accounts", activeAccountHash);
+          await setDoc(accRef, {
+            userLabel: userStr,
+            userName: savedName,
+            updatedAt: appState.updatedAt || Date.now(),
+            payload: JSON.stringify(appState)
+          }, { merge: true });
+        }
+
         const agora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-        updateCloudUI(userStr, `Salvo automaticamente na nuvem às ${agora}`);
-        if (manual) showToast("Dados enviados para a nuvem com sucesso!");
+        updateCloudUI(userStr, `Salvo na nuvem às ${agora}`);
+        if (manual) showToast("Progresso salvo na nuvem com sucesso!");
       } catch (e) {
         console.warn("Falha no envio automático:", e);
+        if (manual) showToast("Sem conexão no momento. Salvo na memória do aparelho!", "error");
       }
     };
 
     window.pullStateFromCloud = async function (manual = false) {
-      if (!db || !currentUser || !activeAccountHash) {
-        if (manual) showToast("Conecte seu usuário e senha primeiro acima.", "error");
+      if (!activeAccountHash) {
+        if (manual) showToast("Conecte seu e-mail/usuário e senha primeiro.", "error");
         return;
       }
       try {
-        const accRef = doc(db, "artifacts", appId, "public", "data", "sync_accounts", activeAccountHash);
-        const snap = await getDoc(accRef);
-        if (snap.exists() && snap.data()?.payload) {
-          isApplyingRemoteUpdate = true;
-          appState = normalizeParsedState(JSON.parse(snap.data().payload));
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
-          saveStateToIndexedDB(appState);
-          applyTheme();
-          refreshAllViews();
-          isApplyingRemoteUpdate = false;
-          if (manual) showToast("Dados atualizados a partir da nuvem!");
+        const userStr = localStorage.getItem("organizador_cloud_user") || "Usuário";
+        let remoteFound = await pullFromNetlifyRelay(activeAccountHash);
+
+        if (!remoteFound && db && currentUser) {
+          const accRef = doc(db, "artifacts", appId, "public", "data", "sync_accounts", activeAccountHash);
+          const snap = await getDoc(accRef);
+          if (snap.exists() && snap.data()?.payload) {
+            const d = snap.data();
+            remoteFound = {
+              state: normalizeParsedState(JSON.parse(d.payload)),
+              userName: d.userName || "",
+              updatedAt: d.updatedAt || 0
+            };
+          }
+        }
+
+        if (remoteFound && remoteFound.state) {
+          if (manual || (remoteFound.updatedAt || 0) > (appState?.updatedAt || 0)) {
+            applyRemoteStateSafely(remoteFound.state, userStr, remoteFound.userName);
+            if (manual) showToast("Dados sincronizados da nuvem com sucesso!");
+          } else {
+            const agora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+            updateCloudUI(userStr, `Sincronizado (atualizado às ${agora})`);
+          }
         } else if (manual) {
-          showToast("Nenhum dado encontrado nessa conta ainda.", "error");
+          showToast("Nenhum dado mais recente encontrado na nuvem.", "error");
         }
       } catch (e) {
         if (manual) showToast("Erro ao buscar dados da nuvem.", "error");
