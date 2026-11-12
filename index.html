@@ -900,6 +900,9 @@
         <button type="button" onclick="openNewTopicModal()" class="retro-btn px-2.5 py-1 text-xs font-medium card-inset hover:opacity-80 transition">
           + Matéria
         </button>
+        <button type="button" onclick="openBaselineModal()" title="Marque o que você já fez antes de usar o site, sem afetar seu progresso real" class="retro-btn px-2.5 py-1 text-xs font-medium card-inset hover:opacity-80 transition">
+          📍 Ponto de partida
+        </button>
         <button type="button" onclick="exportBackupJSON()" title="Baixar arquivo de backup (.json)" class="retro-btn px-2.5 py-1 text-xs font-medium card-inset hover:opacity-80 transition">
           Salvar .JSON
         </button>
@@ -1163,6 +1166,7 @@
       <!-- ABA 1: EDITAL & MATÉRIAS (100% EDITÁVEL)                   -->
       <!-- ========================================================== -->
       <section id="tab-cronograma" class="flex flex-col gap-4">
+        <div id="baseline-banner" class="hidden"></div>
         <div class="card-surface overflow-hidden flex flex-col">
           <div class="retro-titlebar">
             <span>📋 EDITAL_E_MATERIAS.DB — Controle de Tópicos (Editável para qualquer cursinho)</span>
@@ -1297,6 +1301,58 @@
       <!-- ABA 3: ESTATÍSTICAS DO EDITAL & PARETO                     -->
       <!-- ========================================================== -->
       <section id="tab-estatisticas" class="hidden flex-col gap-4">
+
+        <!-- PROJEÇÃO DO EDITAL x DATA DA PROVA -->
+        <div class="card-surface overflow-hidden flex flex-col">
+          <div class="retro-titlebar">
+            <span>🎯 PROJECAO_DO_EDITAL.EXE — Vai dar tempo até a prova?</span>
+            <span id="exam-days-badge">SEM DATA</span>
+          </div>
+          <div class="p-3 flex flex-col gap-3 text-xs">
+            <div class="flex items-center gap-2 flex-wrap">
+              <label for="exam-date-input" class="font-semibold">Data da prova:</label>
+              <input type="date" id="exam-date-input" onchange="setExamDate(this.value)" class="input-surface px-2 py-1 font-mono text-xs" />
+              <button type="button" onclick="setExamDate('')" class="retro-btn px-2 py-1 text-[11px] card-inset">Limpar</button>
+            </div>
+            <div id="exam-projection-body" class="grid gap-2 md:grid-cols-2"></div>
+          </div>
+        </div>
+
+        <!-- PLANEJADOR SEMANAL -->
+        <div class="card-surface overflow-hidden flex flex-col">
+          <div class="retro-titlebar">
+            <span>🗓️ PLANEJADOR_SEMANAL.EXE — Sugestão para esta semana</span>
+            <span>AJUSTÁVEL</span>
+          </div>
+          <div class="p-3 flex flex-col gap-3 text-xs">
+            <div id="plan-inputs" class="flex flex-wrap gap-x-3 gap-y-2 items-end"></div>
+            <div id="plan-summary" class="grid gap-2 md:grid-cols-3"></div>
+            <div id="plan-focus" class="grid gap-2 md:grid-cols-2"></div>
+            <div id="plan-days" class="overflow-x-auto"></div>
+            <div id="plan-note" class="flex flex-col gap-1 text-[11px]" style="color: var(--text-muted);"></div>
+          </div>
+        </div>
+
+        <!-- SINALIZADOR DE EXPECTATIVA -->
+        <div class="card-surface overflow-hidden flex flex-col">
+          <div class="retro-titlebar">
+            <span>🚦 SINALIZADOR_DE_EXPECTATIVA.EXE — Acerto recente x meta de cada importância</span>
+            <span>30 DIAS+</span>
+          </div>
+          <div class="p-3 flex flex-col gap-3 text-xs">
+            <details>
+              <summary class="cursor-pointer font-semibold">Ajustar as cores por importância (verde = meta · âmbar = faixa de atenção · vermelho = abaixo do âmbar)</summary>
+              <div id="plan-targets" class="grid gap-2 pt-2 md:grid-cols-5"></div>
+            </details>
+            <div id="signal-tiers" class="grid gap-2 md:grid-cols-5"></div>
+            <div id="signal-list"></div>
+            <details>
+              <summary class="cursor-pointer font-semibold">Por especialidade (inclui questões lançadas sem tema)</summary>
+              <div id="signal-esp" class="pt-2 flex flex-col"></div>
+            </details>
+            <div class="text-[11px]" style="color: var(--text-muted);">Usa os últimos 30 dias; se uma matéria tiver menos de 10 questões, a janela aumenta para 60 e depois 90 dias. Verde, âmbar e vermelho são ajustáveis acima e valem também para o planejador (a meta verde guia o foco de questões). ⚠️ Só contam as questões cujo nome da matéria é idêntico ao do cronograma: ao lançar questões, escolha a matéria pela lista.</div>
+          </div>
+        </div>
 
         <!-- BARRA DE CONTROLE DOS GRÁFICOS DIÁRIOS -->
         <div class="card-surface overflow-hidden flex flex-col">
@@ -1639,8 +1695,10 @@
 
           <div>
             <label class="block font-semibold mb-1 text-xs">4. Matéria / Tema Principal</label>
-            <input type="text" id="mq-topic" list="mq-topics-datalist" placeholder="Escolha uma matéria da lista ou digite qualquer tema..." class="input-surface w-full px-3 py-2 rounded-xl" />
+            <input type="text" id="mq-topic" oninput="checkQuestionTopicMatch()" onchange="checkQuestionTopicMatch()" list="mq-topics-datalist" placeholder="Escolha uma matéria da lista (ou deixe em branco para questões gerais da especialidade)" class="input-surface w-full px-3 py-2 rounded-xl" />
             <datalist id="mq-topics-datalist"></datalist>
+            <div class="text-[11px] mt-1" style="color: var(--text-muted);">ℹ️ Para o sinalizador de acerto funcionar, o nome da matéria precisa ser <b>idêntico ao do cronograma</b>: escolha pela lista em vez de digitar. <b>Sem tema específico?</b> Deixe a matéria em branco (ou digite só a especialidade, ex.: Hematologia): as questões entram nos totais e na especialidade como "(geral)".</div>
+            <div id="mq-topic-warn" class="hidden text-[11px] mt-1 font-semibold" style="color: #d97706;"></div>
           </div>
 
           <div>
@@ -1752,6 +1810,34 @@
   <!-- ====================================================================== -->
   <!-- MODAL 4: CONFIGURAR METAS (DIÁRIA E ANUAL)                             -->
   <!-- ====================================================================== -->
+  <div id="modal-baseline" class="modal-backdrop fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center">
+    <div class="card-surface modal-window rounded-2xl max-w-3xl w-full shadow-2xl">
+      <div class="retro-titlebar shrink-0">
+        <span>📍 PONTO_DE_PARTIDA.CFG — O que você já fez antes de usar o site</span>
+        <button type="button" onclick="closeBaselineModal()" class="px-1.5 bg-black/30 text-white font-mono">✕</button>
+      </div>
+      <div class="modal-scroll-body p-5 flex flex-col gap-4 text-xs">
+        <p>Marque o que você já estudou e já resolveu <b>antes</b> de começar aqui. Isso vira o seu ponto de partida: as matérias aparecem como concluídas e o acerto ajuda o planejador, mas <b>nada disso entra no seu ritmo, nas metas do dia, nos gráficos, na sequência de dias nem nas revisões</b>. O progresso que você fizer daqui para a frente é contado à parte.</p>
+        <div>
+          <label for="bl-date" class="block font-semibold mb-1">Data em que você começou a usar o site</label>
+          <input type="date" id="bl-date" class="input-surface px-3 py-2 font-mono text-sm" />
+        </div>
+        <div>
+          <div class="font-bold text-sm mb-1">1) Matérias já concluídas</div>
+          <div id="bl-topics" class="flex flex-col gap-1"></div>
+        </div>
+        <div>
+          <div class="font-bold text-sm mb-1">2) Questões já resolvidas (por especialidade, opcional)</div>
+          <div id="bl-stats" class="flex flex-col gap-1"></div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 p-4 shrink-0">
+        <button type="button" onclick="closeBaselineModal()" class="px-3 py-1.5 rounded-xl text-xs card-inset">Cancelar</button>
+        <button type="button" onclick="saveBaseline()" class="px-4 py-1.5 rounded-xl text-xs font-bold text-white" style="background-color: var(--accent-teal);">Salvar ponto de partida</button>
+      </div>
+    </div>
+  </div>
+
   <div id="modal-goals" class="modal-backdrop fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center">
     <div class="card-surface modal-window rounded-2xl max-w-sm w-full shadow-2xl">
       <div class="retro-titlebar shrink-0">
@@ -2812,6 +2898,14 @@
         .replace(/[^a-z0-9]/g, "");
     }
 
+    // Dados do PDF "Cronograma - Extensivo 2026 R1 Acesso Direto": [bloco, ordem no curso, nº de vídeos]
+    // chave = área + título normalizados (mesma normalizeKey do app); matérias criadas por você ficam sem entrada.
+    const PDF_PLAN = {"clinicamedica|avaliacaoglobaldohemograma":[1,1,1],"clinicamedica|anemiashipoproliferativasi":[1,2,2],"clinicamedica|anemiashipoproliferativasii":[1,3,2],"ginecologiaeobstetricia|modificacoesdoorganismomaterno":[1,4,2],"ginecologiaeobstetricia|assistenciaaoprenatal":[1,5,2],"ginecologiaeobstetricia|ultrassonografiaemobstetricia":[1,6,2],"pediatria|aleitamentomaterno":[1,7,2],"pediatria|alimentacaoinfantil":[1,8,2],"pediatria|desenvolvimentoinfantil":[1,9,2],"pediatria|alteracoesnoneurodesenvolvimentoteaetdah":[1,10,2],"medicinapreventiva|boasvindasapreventiva":[1,11,1],"medicinapreventiva|niveisdeprevencao":[1,12,4],"medicinapreventiva|indicadoresdesaude":[1,13,4],"cirurgiageral|introducaoaoextensivoecomoacertarquestoesdeprova":[1,14,1],"cirurgiageral|introducaoaotraumaeatendimentoinicial":[1,15,2],"cirurgiageral|traumaviasaereas":[1,16,2],"cirurgiageral|choqueeressuscitacaohemostatica":[1,17,4],"clinicamedica|neurovasculariaiteavci":[2,18,5],"clinicamedica|neurovasculariihsaeavch":[2,19,4],"ginecologiaeobstetricia|anatomiapelvicafeminina":[2,20,2],"ginecologiaeobstetricia|embriologiadosistemagenitalfeminino":[2,21,2],"ginecologiaeobstetricia|malformacoesmullerianas":[2,22,2],"pediatria|febresemsinaislocalizatorios":[2,23,2],"pediatria|nefrologiapediatrica":[2,24,2],"pediatria|doencarenalcronicaelesaorenalaguda":[2,25,2],"pediatria|miscelaneaemnefropediatria":[2,26,2],"medicinapreventiva|testesdiagnosticos":[2,27,5],"medicinapreventiva|assistenciaaoprenatalnaaps":[2,28,2],"cirurgiageral|traumamedidasauxiliaresfastedemaisavaliacoes":[2,29,2],"cirurgiageral|traumapopulacoesespeciais":[2,30,2],"cirurgiageral|traumadetorax":[2,31,4],"clinicamedica|sifilis":[3,32,4],"clinicamedica|dispepsiaedrge":[3,33,2],"clinicamedica|ulcerapepticahpylorigastriteatrofica":[3,34,2],"ginecologiaeobstetricia|corrimentosvaginais":[3,35,2],"ginecologiaeobstetricia|doencainflamatoriapelvicaaguda":[3,36,2],"ginecologiaeobstetricia|ulcerasgenitais":[3,37,2],"pediatria|alergiaalimentarrefluxoeconstipacao":[3,38,3],"pediatria|diarreiacronicaedoencasfuncionais":[3,39,3],"pediatria|violenciacontraacriancaeoadolescente":[3,40,2],"medicinapreventiva|determinacaosocialdoprocessosaudedoencaepromocaodesaude":[3,41,2],"cirurgiageral|traumaabdominal":[3,42,8],"cirurgiageral|traumaurologico":[3,43,2],"clinicamedica|introducaoasartriteseartritereumatoidear":[4,44,2],"clinicamedica|espondiloartrites":[4,45,2],"clinicamedica|artritesmicrocristalinasgotaecppd":[4,46,2],"clinicamedica|osteoartrite":[4,47,2],"clinicamedica|fibromialgia":[4,48,2],"ginecologiaeobstetricia|assistenciaaoparto":[4,49,6],"ginecologiaeobstetricia|sofrimentofetalagudo":[4,50,2],"pediatria|crescimentoebaixaestatura":[4,51,2],"pediatria|obesidadeesindromemetabolica":[4,52,2],"pediatria|puberdade":[4,53,2],"pediatria|desnutricaoevitaminas":[4,54,2],"medicinapreventiva|redesdeatencaoasaudeeniveisdeatencao":[4,55,2],"medicinapreventiva|atencaoprimariaasaude":[4,56,2],"cirurgiageral|traumadepelve":[4,57,2],"cirurgiageral|traumacranioencefalico":[4,58,2],"cirurgiageral|traumaraquimedular":[4,59,2],"cirurgiageral|traumamusculoesqueletico":[4,60,2],"cirurgiageral|traumadepescoco":[4,61,2],"clinicamedica|dortoracicacoronariana":[5,62,4],"clinicamedica|dortoracicanaocoronariana":[5,63,4],"ginecologiaeobstetricia|fisiologiamenstrual":[5,64,2],"ginecologiaeobstetricia|amenorreiaprimaria":[5,65,2],"ginecologiaeobstetricia|esteroidogenese":[5,66,2],"pediatria|politraumaafogamento":[5,67,2],"pediatria|queimaduras":[5,68,2],"pediatria|traumatismocranioencefalicoehipertensaointracraniana":[5,69,2],"pediatria|diarreiaaguda":[5,70,2],"medicinapreventiva|classificacaodosestudosepidemiologicos":[5,71,2],"medicinapreventiva|associacaoxcausalidade":[5,72,2],"medicinapreventiva|rastreamentos":[5,73,2],"cirurgiageral|traumaencerramento":[5,74,1],"cirurgiageral|queimaduras":[5,75,2],"cirurgiageral|escrotoagudo":[5,76,2],"cirurgiageral|priapismo":[5,77,2],"clinicamedica|gasometriaarterial":[6,78,4],"clinicamedica|disturbiosdosodio":[6,79,2],"clinicamedica|disturbiosdopotassio":[6,80,2],"clinicamedica|reacoesalergicas":[6,81,4],"ginecologiaeobstetricia|amenorreiasecundaria":[6,82,2],"ginecologiaeobstetricia|hiperprolactinemia":[6,83,2],"ginecologiaeobstetricia|sindromedosovariospolicisticos":[6,84,2],"pediatria|infeccoesdeviasaereassuperioresivas":[6,85,2],"pediatria|autoinflamatorias":[6,86,1],"pediatria|pneumonias":[6,87,2],"pediatria|bronquioliteecoqueluche":[6,88,3],"pediatria|covid":[6,89,1],"medicinapreventiva|estudostransversais":[6,90,2],"medicinapreventiva|estudoslongitudinaiscoorteecasocontrole":[6,91,2],"cirurgiageral|abdomeagudointroducao":[6,92,2],"cirurgiageral|apendiciteaguda":[6,93,2],"cirurgiageral|cicatrizacaoelesoesporpressao":[6,94,2],"cirurgiageral|fiosdesutura":[6,95,2],"cirurgiageral|anestesicoslocais":[6,96,2],"clinicamedica|antibioticos":[7,97,6],"clinicamedica|anemiashemoliticas":[7,98,4],"clinicamedica|oncologiaemergenciasecuidadospaliativos":[7,99,4],"ginecologiaeobstetricia|infeccoesegravidez":[7,100,2],"ginecologiaeobstetricia|roturaprematurademembranasovulares":[7,101,2],"ginecologiaeobstetricia|violenciasexual":[7,102,2],"ginecologiaeobstetricia|interrupcaolegaldagestacao":[7,103,2],"pediatria|reanimacaoneonatal":[7,104,3],"pediatria|infeccoescongenitas":[7,105,2],"pediatria|ictericiaecolestaseneonatal":[7,106,2],"medicinapreventiva|historiaeprincipiosdosus":[7,107,2],"cirurgiageral|urgenciasdavesiculabiliar":[7,108,6],"cirurgiageral|cancerdeesofago":[7,109,4],"clinicamedica|cefaleias":[8,110,6],"clinicamedica|avaliacaogeriatricaampla":[8,111,2],"clinicamedica|grandessindromesgeriatricas":[8,112,8],"clinicamedica|avaliacaodeenzimashepaticasdhemehepatitealcoolica":[8,113,2],"clinicamedica|doencashepaticascbpcephaiedoencadewilson":[8,114,2],"ginecologiaeobstetricia|abortamento":[8,115,2],"ginecologiaeobstetricia|gestacaoectopica":[8,116,2],"ginecologiaeobstetricia|doencatrofoblasticagestacional":[8,117,2],"pediatria|dermatiteatopicaelesoesbenignasdorecemnascido":[8,118,2],"pediatria|dermatoseseinfeccoesdepartesmoles":[8,119,2],"medicinapreventiva|legislacaodosusileisorganicasdasaude":[8,120,2],"cirurgiageral|pancreatiteaguda":[8,121,2],"cirurgiageral|diverticuliteaguda":[8,122,2],"cirurgiageral|abscessohepatico":[8,123,2],"cirurgiageral|disfagiaeacalasia":[8,124,4],"cirurgiageral|herniasdehiato":[8,125,2],"clinicamedica|coagulacaoehemostasia":[9,126,4],"clinicamedica|hemoterapia":[9,127,2],"clinicamedica|cirrosehepaticai":[9,128,4],"clinicamedica|cirrosehepaticaii":[9,129,4],"clinicamedica|pneumoniaadquiridanacomunidade":[9,130,2],"clinicamedica|derramepleural":[9,131,2],"ginecologiaeobstetricia|placentaprevia":[9,132,2],"ginecologiaeobstetricia|descolamentoprematurodeplacenta":[9,133,2],"ginecologiaeobstetricia|outrossangramentosdesegundametadedagestacao":[9,134,2],"pediatria|anemiafalciforme":[9,135,2],"pediatria|anemiaferroprivaetalassemia":[9,136,3],"pediatria|hemostasiaedisturbioshemorragicos":[9,137,2],"pediatria|genetica":[9,138,2],"medicinapreventiva|legislacaodosusiinobsnoasepactopelasaude":[9,139,2],"medicinapreventiva|tabagismo":[9,140,2],"cirurgiageral|abdomeagudoobstrutivo":[9,141,2],"cirurgiageral|abdomeagudoperfurativovascularehemorragico":[9,142,2],"cirurgiageral|cancerdeestomago":[9,143,2],"clinicamedica|hasambulatorialeemergencias":[10,144,4],"clinicamedica|insuficienciacardiaca":[10,145,4],"clinicamedica|asma":[10,146,3],"clinicamedica|doencapulmonarobstrutivacronicadpoc":[10,147,2],"clinicamedica|blseacls":[10,148,3],"ginecologiaeobstetricia|sindromeshipertensivasnagestacao":[10,149,4],"ginecologiaeobstetricia|sangramentouterinoanormal":[10,150,6],"pediatria|suporteavancadodevidaempediatriapals":[10,151,2],"pediatria|cardiopatiascongenitas":[10,152,2],"pediatria|hipertensaoarterialsistemicahas":[10,153,2],"pediatria|miocarditesincopeinsuficienciacardiaca":[10,154,2],"medicinapreventiva|legislacaodosus3decreto750811":[10,155,2],"medicinapreventiva|rededeatencaopsicossocialraps":[10,156,2],"cirurgiageral|anatomiadaparedeabdominaleherniainguinal":[10,157,2],"cirurgiageral|hernioplastiainguinal":[10,158,2],"cirurgiageral|outrasneoplasiasgastricas":[10,159,4],"cirurgiageral|enxertoseretalhos":[10,160,2],"medicinapreventiva|medidasdeassociacaoexercicios":[10,161,1],"clinicamedica|diabetesclassificacaodiagnosticoemetaterapeutica":[11,162,2],"clinicamedica|diabetestratamento":[11,163,2],"clinicamedica|emergenciashiperglicemicascadeehh":[11,164,2],"clinicamedica|hiperglicemiahospitalar":[11,165,1],"ginecologiaeobstetricia|diabetesnagestacao":[11,166,2],"ginecologiaeobstetricia|infertilidade":[11,167,2],"ginecologiaeobstetricia|endometriose":[11,168,2],"pediatria|arboviroses":[11,169,2],"pediatria|doencasexantematicas":[11,170,2],"pediatria|cetoacidosediabeticacad":[11,171,2],"medicinapreventiva|financiamentodosuseplanejamentoemsaude":[11,172,2],"medicinapreventiva|eticaempesquisaclinica":[11,173,2],"cirurgiageral|sindromecompartimentalintraabdominal":[11,174,2],"cirurgiageral|herniasincisionaisefechamentodeparede":[11,175,2],"cirurgiageral|outrashernias":[11,176,2],"cirurgiageral|urgenciasendoscopicas":[11,177,6],"medicinapreventiva|ensaiosclinicos":[11,178,4],"cirurgiageral|cirurgiabariatrica":[12,179,4],"clinicamedica|sindromemetabolicaeobesidade":[12,180,2],"clinicamedica|dislipidemias":[12,181,2],"ginecologiaeobstetricia|propedeuticaemuroginecologia":[12,182,2],"ginecologiaeobstetricia|incontinenciaurinaria":[12,183,6],"ginecologiaeobstetricia|prolapsogenital":[12,184,2],"pediatria|triagensneonatais":[12,185,2],"pediatria|disturbiosmetabolicosneonatais":[12,186,2],"pediatria|peconhentosraivaetetano":[12,187,2],"pediatria|ingestaoeaspiracaodecorpoestranhoebrue":[12,188,2],"medicinapreventiva|preventivaajornadacontinua":[12,189,1],"medicinapreventiva|significanciaestatisticavalorpeintervalodeconfianca":[12,190,2],"medicinapreventiva|revisaosistematicaemetanalise":[12,191,2],"medicinapreventiva|medicinabaseadaemevidencias":[12,192,2],"cirurgiageral|preoperatorio":[12,193,4],"cirurgiageral|urooncologia":[12,194,4],"clinicamedica|vasculites":[13,195,4],"clinicamedica|tuberculoseclinicaediagnostico":[13,196,4],"clinicamedica|tuberculosetratamento":[13,197,2],"ginecologiaeobstetricia|avaliacaodevitalidadefetal":[13,198,2],"ginecologiaeobstetricia|restricaodecrescimentointrauterino":[13,199,2],"medicinapreventiva|cardiologianaaps":[13,200,2],"ginecologiaeobstetricia|sofrimentofetalcronico":[13,201,2],"ginecologiaeobstetricia|gemelaridade":[13,202,2],"pediatria|convulsaonaemergenciaeconvulsaofebril":[13,203,2],"pediatria|tuberculose":[13,204,2],"medicinapreventiva|diabetesnosus":[13,205,2],"medicinapreventiva|estrategiadasaudedafamilia":[13,206,2],"cirurgiageral|remiteposoperatorio":[13,207,2],"cirurgiageral|perioperatoriocomplicacoesgerais":[13,208,2],"cirurgiageral|fraturasdeface":[13,209,2],"cirurgiageral|paralisiafacial":[13,210,2],"cirurgiageral|hiperplasiaprostaticabenigna":[13,211,2],"cirurgiageral|cirurgiageralrespiroeproximospassos":[13,212,1],"clinicamedica|meningitesencefalites":[14,213,2],"clinicamedica|doencasneuromusculareseparkinson":[14,214,6],"clinicamedica|taquiarritmiascardiologia":[14,215,2],"clinicamedica|bradiarritmias":[14,216,2],"clinicamedica|sincope":[14,217,2],"clinicamedica|doencasvalvares":[14,218,4],"ginecologiaeobstetricia|cardiopatiasnagravidez":[14,219,2],"ginecologiaeobstetricia|anticoncepcao":[14,220,6],"pediatria|kawasakivasculiteporigaefebrereumatica":[14,221,2],"pediatria|artriteidiopaticajuvenil":[14,222,2],"pediatria|meningiteeencefalite":[14,223,2],"medicinapreventiva|financiamentodaaps":[14,224,2],"medicinapreventiva|sindromedepressiva":[14,225,2],"medicinapreventiva|sindromemaniaca":[14,226,2],"cirurgiageral|cancercolorretalesindromesassociadas":[14,227,4],"cirurgiageral|doencasorificiaisececdecanalanal":[14,228,4],"cirurgiageral|doencasdavesiculabiliar":[14,229,2],"clinicamedica|viaaereaintubacaoeventilacaonaoinvasivavni":[15,230,2],"clinicamedica|sindromedodesconfortorespiratorioagudosdra":[15,231,2],"clinicamedica|ventilacaomecanica":[15,232,2],"clinicamedica|infeccoesnosocomiais":[15,233,4],"clinicamedica|choque":[15,234,5],"clinicamedica|drogasvasoativasesedoanalgesia":[15,235,2],"clinicamedica|vacinacao":[15,236,2],"ginecologiaeobstetricia|propedeuticamamaria":[15,237,2],"ginecologiaeobstetricia|principaissintomasemmastologia":[15,238,2],"ginecologiaeobstetricia|classificacaodaslesoesbenignas":[15,239,2],"pediatria|vacinacao":[15,240,5],"pediatria|hiv":[15,241,1],"pediatria|ortopediapediatrica":[15,242,2],"pediatria|osteomieliteeartriteseptica":[15,243,2],"medicinapreventiva|ferramentasdaapsesf":[15,244,2],"medicinapreventiva|sindromeansiosa":[15,245,2],"cirurgiageral|figadoparaperdidos":[15,246,2],"cirurgiageral|noduloshepaticosbenignos":[15,247,2],"cirurgiageral|ferimentodescolante":[15,248,2],"pediatria|pediatriageral":[16,249,2],"clinicamedica|injuriarenal":[16,250,4],"clinicamedica|diarreiaagudasecolitepseudomembranosa":[16,251,2],"clinicamedica|diarreiascronicas":[16,252,2],"clinicamedica|doencainflamatoriaintestinaldii":[16,253,2],"clinicamedica|doencasnegligenciadas":[16,254,2],"ginecologiaeobstetricia|trabalhodepartoprematuro":[16,255,2],"ginecologiaeobstetricia|colocurtoeincompetenciaistmocervical":[16,256,2],"pediatria|hiperplasiaadrenalcongenitahac":[16,257,2],"pediatria|hipotireoidismo":[16,258,2],"pediatria|diferencasnodesenvolvimentosexual":[16,259,1],"pediatria|nutrologiaempediatria":[16,260,2],"medicinapreventiva|telessaudeepublicidademedica":[16,261,2],"medicinapreventiva|metodoclinicocentradonapessoaecomunicacaodenoticiasdificeis":[16,262,2],"cirurgiageral|litiaserenalprontosocorroetratamentocirurgico":[16,263,2],"cirurgiageral|carcinomahepatocelular":[16,264,2],"cirurgiageral|aneurismadeaorta":[16,265,2],"clinicamedica|lupuseritematososistemico":[17,266,2],"clinicamedica|osteoporose":[17,267,2],"clinicamedica|esclerosesistemica":[17,268,2],"clinicamedica|doencadesjogren":[17,269,2],"clinicamedica|miopatiasautoimunessistemicas":[17,270,2],"clinicamedica|glomerulopatias":[17,271,4],"clinicamedica|intoxicacoesexogenas":[17,272,2],"ginecologiaeobstetricia|hemorragiaposparto":[17,273,2],"ginecologiaeobstetricia|puerperio":[17,274,4],"pediatria|asma":[17,275,4],"pediatria|fibrosecisticaediferenciais":[17,276,2],"pediatria|imunodeficienciasparaopediatra":[17,277,1],"medicinapreventiva|vigilanciaemsaude":[17,278,3],"medicinapreventiva|registrodesaudeorientadoporproblemasresoap":[17,279,2],"cirurgiageral|metastaseshepaticasdecancercolorretal":[17,280,4],"cirurgiageral|adenocarcinomadepancreasetumoresperiampulares":[17,281,4],"cirurgiageral|figadoevbquiz":[17,282,1],"clinicamedica|hivedoencasoportunistas":[18,283,4],"clinicamedica|fisiologiadatireoideehipotireoidismo":[18,284,4],"clinicamedica|hipertireoidismoetireoidite":[18,285,2],"clinicamedica|epilepsia":[18,286,2],"clinicamedica|esclerosemultiplaemeneuromieliteoptica":[18,287,4],"ginecologiaeobstetricia|cancerdecolodeuterorastreamento":[18,288,2],"ginecologiaeobstetricia|cancerdecolodeuterodiagnosticoetratamento":[18,289,2],"ginecologiaeobstetricia|doencasdavulvaedavagina":[18,290,2],"pediatria|sepseneonatal":[18,291,2],"pediatria|desconfortorespiratorioneonatal":[18,292,2],"pediatria|outrasdoencasneonatais":[18,293,2],"pediatria|nutricaodopretermo":[18,294,2],"medicinapreventiva|processoepidemico":[18,295,2],"medicinapreventiva|abordagemfamiliarecomunitaria":[18,296,2],"cirurgiageral|sindromedefournier":[18,297,2],"cirurgiageral|ortopedia":[18,298,2],"cirurgiageral|trombosevenosaprofunda":[18,299,2],"cirurgiageral|cirurgiatoracicapneumotorax":[18,300,2],"clinicamedica|tromboembolismopulmonar":[19,301,3],"clinicamedica|disturbiosdosono":[19,302,2],"clinicamedica|doencapulmonarintersticialdpi":[19,303,2],"clinicamedica|nodulopulmonar":[19,304,2],"clinicamedica|adrenal":[19,305,4],"clinicamedica|sindromedecushing":[19,306,2],"clinicamedica|disfagiaesofagiteeosinofilicaeacalasias":[19,307,2],"ginecologiaeobstetricia|cancerdemamarastreamento":[19,308,2],"ginecologiaeobstetricia|cancerdemamafatoresderiscoecdis":[19,309,2],"ginecologiaeobstetricia|cancerdemamadoencainvasiva":[19,310,2],"pediatria|parasitosesintestinais":[19,311,2],"pediatria|neoplasiaspediatricas":[19,312,2],"medicinapreventiva|acidentedetrabalho":[19,313,2],"medicinapreventiva|sindromepsicotica":[19,314,2],"medicinapreventiva|psicofarmacologia":[19,315,3],"cirurgiageral|oncocirurgiageral":[19,316,4],"cirurgiageral|isquemiademembrosinferiores":[19,317,2],"clinicamedica|infeccaodotratourinarioitu":[20,318,2],"clinicamedica|outrodisturbioshidroeletroliticoscalciofosforoemagnesio":[20,319,2],"clinicamedica|doencarenalcronica":[20,320,2],"ginecologiaeobstetricia|sindromeclimaterica":[20,321,2],"ginecologiaeobstetricia|terapiahormonal":[20,322,2],"ginecologiaeobstetricia|tumoresanexiais":[20,323,2],"ginecologiaeobstetricia|cancerdeovario":[20,324,2],"pediatria|infeccaodetratourinarioitu":[20,325,2],"pediatria|sedoanalgesiaesequenciarapidadeintubacao":[20,326,2],"pediatria|sepsepediatrica":[20,327,2],"pediatria|choqueedrogasvasoativas":[20,328,2],"medicinapreventiva|pneumoconioses":[20,329,2],"medicinapreventiva|tuberculoseehanseniasenaaps":[20,330,2],"medicinapreventiva|saudesocioecologicasaudeplanetariasaudeunicaesaudeglobal":[20,331,2],"cirurgiageral|cirurgiaresumaoencerramento":[20,332,1],"cirurgiageral|neoplasiascisticaspancreaticas":[20,333,2],"cirurgiageral|pancreatitecronica":[20,334,2],"cirurgiageral|traumavascular":[20,335,2],"cirurgiageral|estenosecarotidea":[20,336,2],"cirurgiageral|cancerdepulmao":[20,337,2],"cirurgiageral|eletrocirurgia":[21,338,2],"clinicamedica|depressaoedeliriumnoidoso":[21,339,4],"clinicamedica|insuficienciacognitivademencias":[21,340,2],"ginecologiaeobstetricia|hiperplasiaendometrial":[21,341,2],"ginecologiaeobstetricia|cancerdeendometrio":[21,342,2],"ginecologiaeobstetricia|outrasintercorrenciasclinicasnagestacao":[21,343,2],"pediatria|cirurgiapediatricanops":[21,344,2],"pediatria|uropediatriaehernias":[21,345,2],"pediatria|malformacoescongenitas":[21,346,4],"medicinapreventiva|declaracaodeobitoatestadoselaudos":[21,347,2],"medicinapreventiva|atencaoasaudedepopulacoesespecificas":[21,348,2],"cirurgiageral|videolaparoscopia":[21,349,2],"cirurgiageral|pancreaseviasbiliarestumoresneuroendocrinos":[21,350,2],"cirurgiageral|nutricaoperioperatoria":[21,351,2],"cirurgiageral|diagnosticosdiferenciaisdasmassascervicais":[21,352,2],"cirurgiageral|insuficienciavenosacronica":[21,353,2],"cirurgiageral|cirurgiavascularsindromescompressivas":[21,354,2],"clinicamedica|doencasviraisepandemicas":[22,355,2],"clinicamedica|arbovirosesclinicamedica":[22,356,3],"clinicamedica|ictericiasfebrisefebremaculosa":[22,357,2],"clinicamedica|hepatitesvirais":[22,358,2],"ginecologiaeobstetricia|tecnicasdereproducaoassistida":[22,359,2],"ginecologiaeobstetricia|cuidadoasaudelgbtqiapn":[22,360,2],"pediatria|medicinadoadolescente":[22,361,2],"pediatria|eticaempediatria":[22,362,4],"medicinapreventiva|eticamedica":[22,363,2],"medicinapreventiva|intoxicacoesperdaauditivainduzidaporruidopairoeburnout":[22,364,2],"medicinapreventiva|dermatologianaaps":[22,365,2],"cirurgiageral|tumoresdointestinodelgado":[22,366,2],"cirurgiageral|doencascirurgicasdobaco":[22,367,2],"cirurgiageral|cecdecabecaepescoco":[22,368,2],"cirurgiageral|doencastraqueais":[22,369,2],"cirurgiageral|bronquiectasiasehemoptise":[22,370,2],"clinicamedica|hiperaldosteronismoprimario":[23,371,2],"clinicamedica|feocromocitoma":[23,372,2],"clinicamedica|prolactinomas":[23,373,2],"clinicamedica|oncohematologia":[23,374,10],"ginecologiaeobstetricia|cirurgiaginecologicaprincipiosecomplicacoes":[23,375,2],"ginecologiaeobstetricia|transtornospsiquiatricosnagestacaoeposparto":[23,376,2],"medicinapreventiva|emergenciaspsiquiatricas":[23,377,3],"medicinapreventiva|violenciasevulnerabilidade":[23,378,2],"medicinapreventiva|saudeprivadasuplementarejudicializacaoemsaude":[23,379,2],"pediatria|psiquiatriadainfanciaeadolescencia":[23,380,1],"pediatria|epilepsiasnainfancia":[23,381,4],"cirurgiageral|cistopilonidal":[23,382,2],"cirurgiageral|anomaliascongenitasemcabecaepescoco":[23,383,2],"cirurgiageral|mediastino":[23,384,4],"clinicamedica|dermatologia":[24,385,6],"ginecologiaeobstetricia|medicinafetal":[24,386,6],"pediatria|otitesperdaauditivarinossinusiteseepistaxe":[24,387,2],"pediatria|riniteseafeccoesdalaringeefaringe":[24,388,2],"medicinapreventiva|transtornosalimentaressomatoformesedepersonalidade":[24,389,2],"cirurgiageral|endoscopia":[24,390,4],"cirurgiageral|cabecaepescocotireoide":[24,391,2],"cirurgiageral|cabecaepescocoparatireoide":[24,392,2],"cirurgiageral|neurocirurgia":[24,393,4],"clinicamedica|otologiai":[25,394,2],"clinicamedica|otologiaii":[25,395,4],"clinicamedica|oftalmologiaparaogeneralistapartei":[25,396,1],"ginecologiaeobstetricia|trombofiliasnagestacaoepuerperio":[25,397,2],"ginecologiaeobstetricia|doencahemoliticaperinatal":[25,398,2],"pediatria|oftalmopediatria":[25,399,3],"medicinapreventiva|saudedotrabalhador":[25,400,4],"cirurgiageral|anestesiologia":[25,401,10],"clinicamedica|rinologia":[26,402,4],"clinicamedica|bucofaringolaringologiai":[26,403,2],"clinicamedica|bucofaringolaringologiaii":[26,404,4],"clinicamedica|sindromecoronarianacronica":[26,405,2],"clinicamedica|oftalmologiaparaogeneralistaparteii":[26,406,2],"ginecologiaeobstetricia|outrasurgenciasginecologicas":[26,407,2],"pediatria|malformacoesdosistemanervoso":[26,408,2],"pediatria|doencasneuromuscularesnainfancia":[26,409,2],"medicinapreventiva|transtornosrelacionadosasubstanciasalcool":[26,410,3],"medicinapreventiva|preventivaretafinal":[26,411,1],"cirurgiageral|cirurgiacardiaca":[26,412,12],"cirurgiageral|tromboelastograma":[26,413,2],"cirurgiageral|cancerdepelenaomelanoma":[26,414,2]};
+    function pdfInfo(t) {
+      const p = PDF_PLAN[normalizeKey(t.area) + "|" + normalizeKey(t.title)];
+      return p ? { block: p[0], seq: p[1], videos: p[2] } : null;
+    }
+
     function buildCleanScheduleTopics() {
       const list = [];
       let idx = 1;
@@ -2843,6 +2937,10 @@
         dailyGoal: 40,
         dailyHoursGoal: 3,
         annualGoal: 15000,
+        examDate: null,
+        weekPlan: null,
+        baseline: null,
+        baselineDismissed: false,
         autoDownloadOnSave: false,
         scheduleTopics: buildCleanScheduleTopics(),
         qlogs: [],
@@ -2884,6 +2982,7 @@
       if (!parsed.dailyGoal) parsed.dailyGoal = 40;
       if (!parsed.dailyHoursGoal) parsed.dailyHoursGoal = 3;
       if (!parsed.annualGoal) parsed.annualGoal = 15000;
+      if (!parsed.examDate) parsed.examDate = null;
       return parsed;
     }
 
@@ -3014,6 +3113,7 @@
       if (!topic) return;
       topic.done = !!checked;
       topic.completedAt = checked ? getTodayISO() : null;
+      topic.base = false;
       saveAppState(true);
       const agg = buildQuestionAggregates();
       renderTopSummaryBar(agg);
@@ -3028,6 +3128,7 @@
         if (t.area === area && t.esp === esp && t.sub === sub) {
           t.done = statusBool;
           t.completedAt = statusBool ? today : null;
+          t.base = false;
         }
       });
       saveAppState(true);
@@ -3133,6 +3234,7 @@
                     <span class="${item.done ? 'line-through opacity-60' : 'font-medium'} truncate">${item.title}</span>
                   </label>
                   <div class="flex items-center gap-2 shrink-0">
+                    ${topicSignalBadge(item)}
                     <span class="px-1.5 py-0.5 text-[10px] card-inset font-mono">${item.prio}</span>
                     <span class="px-1.5 py-0.5 text-[10px] card-inset font-mono hidden sm:inline">${item.block}</span>
                     <div class="row-actions flex items-center gap-1">
@@ -3726,6 +3828,7 @@
       appState.scheduleTopics.forEach(t => {
         t.done = false;
         t.completedAt = null;
+        t.base = false;
       });
       saveAppState(true);
       closeResetConfirmModal();
@@ -4472,15 +4575,20 @@
     function saveQuestionSession() {
       const macro = document.getElementById("mq-macro").value;
       const date = document.getElementById("mq-date").value || getTodayISO();
-      const esp = document.getElementById("mq-esp").value.trim() || "Geral";
-      const topic = document.getElementById("mq-topic").value.trim();
+      const topicTyped = document.getElementById("mq-topic").value.trim();
+      const espTyped = document.getElementById("mq-esp").value.trim();
+      // "Hematologia" digitado no campo da matéria (ou campo vazio) = questões gerais da especialidade
+      const espAsTopic = topicTyped && !isScheduleTitle(topicTyped) ? matchScheduleEsp(topicTyped) : null;
+      const treatAsGeneral = !topicTyped || !!espAsTopic;
+      const esp = (treatAsGeneral && espAsTopic) ? espAsTopic : (espTyped || "Geral");
+      const topic = treatAsGeneral ? (esp !== "Geral" ? `${esp} (geral)` : "") : topicTyped;
       const subtopic = document.getElementById("mq-subtopic").value.trim();
       const feitas = parseInt(document.getElementById("mq-feitas").value) || 0;
       const certas = parseInt(document.getElementById("mq-certas").value) || 0;
       const markDone = document.getElementById("mq-mark-topic-done").checked;
 
       if (!topic || feitas <= 0 || certas < 0 || certas > feitas) {
-        showToast("Preencha o tema e valores válidos de questões e acertos.", "error");
+        showToast("Preencha a matéria (ou ao menos a especialidade) e valores válidos de questões e acertos.", "error");
         return;
       }
 
@@ -4509,6 +4617,9 @@
       closeQuestionModal();
       refreshAllViews();
       showToast(`Registrado: ${certas}/${feitas} em ${subtopic || topic}!`);
+      if (!treatAsGeneral && !isScheduleTitle(topic)) {
+        showToast(`⚠️ "${topic}" não existe no cronograma: a questão não entra no sinalizador dessa matéria.`);
+      }
     }
 
     function openTopicHistoryModal(topicName) {
@@ -4639,7 +4750,7 @@
           customTopics.push(t);
         } else {
           if (t.done) {
-            doneList.push([t.id, t.completedAt || ""]);
+            doneList.push([t.id, t.base ? "BASE" : (t.completedAt || "")]);
           }
           if (t.title !== def.title || t.area !== def.area || t.esp !== def.esp || t.sub !== def.sub || t.prio !== def.prio || t.block !== def.block) {
             editedDefault.push({
@@ -4670,6 +4781,10 @@
           dailyGoal: state.dailyGoal || 40,
           dailyHoursGoal: state.dailyHoursGoal || 3,
           annualGoal: state.annualGoal || 15000,
+          examDate: state.examDate || null,
+          weekPlan: state.weekPlan || null,
+          baseline: state.baseline || null,
+          baselineDismissed: !!state.baselineDismissed,
           pomoCycles: state.pomoCycles || 0,
           autoDownloadOnSave: !!state.autoDownloadOnSave
         },
@@ -4711,12 +4826,13 @@
         .filter(t => !deletedSet.has(t.id))
         .map(t => {
           const ed = editMap.get(t.id);
-          const isDone = doneMap.has(t.id);
+          const isDone = doneMap.has(t.id), dv = doneMap.get(t.id), isBase = dv === "BASE";
           return {
             ...t,
             ...(ed || {}),
             done: isDone,
-            completedAt: isDone ? (doneMap.get(t.id) || getTodayISO()) : null
+            base: isBase,
+            completedAt: isDone && !isBase ? (dv || getTodayISO()) : null
           };
         });
 
@@ -4749,6 +4865,10 @@
         dailyGoal: cfg.dailyGoal || 40,
         dailyHoursGoal: cfg.dailyHoursGoal || 3,
         annualGoal: cfg.annualGoal || 15000,
+        examDate: cfg.examDate || null,
+        weekPlan: cfg.weekPlan || null,
+        baseline: cfg.baseline || null,
+        baselineDismissed: !!cfg.baselineDismissed,
         pomoCycles: cfg.pomoCycles || 0,
         autoDownloadOnSave: !!cfg.autoDownloadOnSave,
         scheduleTopics,
@@ -4770,7 +4890,8 @@
         const oldT = olderMap.get(t.id);
         if (oldT && oldT.done && !t.done) {
           t.done = true;
-          t.completedAt = oldT.completedAt || getTodayISO();
+          t.base = !!oldT.base;
+          t.completedAt = oldT.base ? null : (oldT.completedAt || getTodayISO());
         }
       }
       const mergedIds = new Set((merged.scheduleTopics || []).map(t => t.id));
@@ -5279,13 +5400,514 @@ let currentSceneryTheme = null;
       }
     }
 
+
+    // =========================================================================
+    // PROJEÇÃO DO EDITAL x DATA DA PROVA (ritmo real = matérias concluídas nas últimas 4 semanas)
+    // =========================================================================
+    function parseISODate(iso) { const [y, m, d] = String(iso).split("-").map(Number); return new Date(y, m - 1, d); }
+    function daysBetween(a, b) { return Math.round((b - a) / 86400000); }
+    function formatBRDate(dt) { return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }); }
+
+    function setExamDate(v) {
+      appState.examDate = v || null;
+      saveAppState(true);
+      renderExamProjection();
+    }
+
+    function renderExamProjection() {
+      const body = document.getElementById("exam-projection-body");
+      if (!body) return;
+      const inp = document.getElementById("exam-date-input");
+      if (inp && document.activeElement !== inp) inp.value = appState.examDate || "";
+      const badge = document.getElementById("exam-days-badge");
+
+      const topics = appState.scheduleTopics || [];
+      const today = parseISODate(getTodayISO());
+      const isCore = t => t.prio.includes("Diamante") || t.prio.includes("Alta");
+      const pend = topics.filter(t => !t.done);
+      const pendCore = pend.filter(isCore);
+      const totalCore = topics.filter(isCore).length;
+
+      // ritmo: conclusões datadas nos últimos 28 dias (mínimo 3, janela mínima de 7 dias)
+      const WIN = 28;
+      const recent = topics.filter(t => t.done && t.completedAt).map(t => parseISODate(t.completedAt))
+        .filter(d => { const n = daysBetween(d, today); return n >= 0 && n < WIN; });
+      let perWeek = null, bulk = false;
+      if (recent.length >= 3) {
+        const span = Math.min(WIN, Math.max(7, daysBetween(new Date(Math.min(...recent)), today) + 1));
+        perWeek = recent.length / (span / 7);
+        const byDay = {};
+        recent.forEach(d => { const k = d.getTime(); byDay[k] = (byDay[k] || 0) + 1; });
+        bulk = recent.length >= 10 && Math.max(...Object.values(byDay)) / recent.length >= 0.5;
+      }
+
+      let daysLeft = null;
+      if (appState.examDate) {
+        daysLeft = daysBetween(today, parseISODate(appState.examDate));
+        if (badge) badge.textContent = daysLeft > 0 ? `D-${daysLeft}` : (daysLeft === 0 ? "É HOJE" : "JÁ PASSOU");
+      } else if (badge) badge.textContent = "SEM DATA";
+      window.__editalPace = { perWeek, daysLeft };
+
+      const card = (title, total, pending, nPend) => {
+        const doneN = total - nPend;
+        if (nPend === 0) return `<div class="card-inset p-2.5"><b>${title}</b><div class="mt-1">✅ Concluído (${doneN}/${total}).</div></div>`;
+        const lines = [`<div class="font-mono">Faltam <b>${nPend}</b> de ${total} matérias</div>`];
+        let tag = "", color = "#6b7280", finish = null;
+        const need = daysLeft && daysLeft > 0 ? nPend / (daysLeft / 7) : null;
+        if (perWeek) {
+          const dTo = Math.ceil(nPend / (perWeek / 7));
+          if (dTo > 1825) lines.push(`<div>No ritmo atual (${perWeek.toFixed(1)}/sem) isso leva <b>mais de 5 anos</b>.</div>`);
+          else { finish = new Date(today.getTime() + dTo * 86400000); lines.push(`<div>No ritmo atual (<b>${perWeek.toFixed(1)}/sem</b>) você conclui em <b>${formatBRDate(finish)}</b>.</div>`); }
+          if (daysLeft !== null && daysLeft > 0) {
+            const margin = daysLeft - dTo;
+            if (margin >= 0) { tag = `No ritmo · folga de ${margin} dias`; color = "#16a34a"; }
+            else if (need <= perWeek * 1.25) { tag = `Apertado · ${-margin} dias de atraso`; color = "#d97706"; }
+            else { tag = `Atrasado · ${-margin} dias além da prova`; color = "#dc2626"; }
+          }
+        } else lines.push(`<div style="color: var(--text-muted);">Poucos dados para medir seu ritmo (marque ao menos 3 matérias nas últimas 4 semanas).</div>`);
+        if (need !== null) lines.push(`<div>Para chegar na prova: <b>${need.toFixed(1)}/sem</b> (${Math.ceil(daysLeft / 7)} semanas restantes).</div>`);
+        else if (daysLeft !== null && daysLeft <= 0) lines.push(`<div style="color: var(--text-muted);">A data informada já passou. Atualize a data da prova.</div>`);
+        let bars = "";
+        if (perWeek && need !== null) {
+          const mx = Math.max(perWeek, need);
+          bars = `<div class="flex flex-col gap-1 mt-1">
+            <div class="flex items-center gap-2"><span class="w-16 text-[10px]">Seu ritmo</span><div class="flex-1 h-2 card-inset"><div style="width:${(perWeek / mx * 100).toFixed(0)}%; height:100%; background: var(--accent-teal);"></div></div></div>
+            <div class="flex items-center gap-2"><span class="w-16 text-[10px]">Necessário</span><div class="flex-1 h-2 card-inset"><div style="width:${(need / mx * 100).toFixed(0)}%; height:100%; background: var(--accent-terracotta);"></div></div></div></div>`;
+        }
+        const badgeHtml = tag ? `<span class="px-1.5 py-0.5 text-[10px] font-bold text-white" style="background:${color};">${tag}</span>` : "";
+        return `<div class="card-inset p-2.5 flex flex-col gap-1"><div class="flex items-center justify-between gap-2 flex-wrap"><b>${title}</b>${badgeHtml}</div>${lines.join("")}${bars}</div>`;
+      };
+
+      let html = card("Edital completo", topics.length, pend, pend.length) +
+                 card("Núcleo Pareto (Diamante + Alta)", totalCore, pendCore, pendCore.length);
+      html += `<div class="md:col-span-2 text-[11px]" style="color: var(--text-muted);">Estimativa pelo ritmo de matérias concluídas nas últimas 4 semanas; muda conforme você estuda.${bulk ? " ⚠️ Muitas conclusões foram marcadas no mesmo dia, então o ritmo pode estar superestimado." : ""}${appState.examDate ? "" : " Informe a data da prova para saber se dá tempo."}</div>`;
+      body.innerHTML = html;
+    }
+
+
+    // =========================================================================
+    // PLANEJADOR SEMANAL: acerto efetivo (recência + esquecimento) x meta por importância
+    // =========================================================================
+    const PLAN_PRIO = ["Diamante", "Alta", "Média", "Baixa", "Bônus"];
+    const PLAN_W = [1.0, 0.8, 0.55, 0.35, 0.2];
+    const PLAN_DAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+    const _e = x => String(x ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const _h = n => n.toFixed(1).replace(".", ",");
+    function planPrioIdx(t) { const i = PLAN_PRIO.findIndex(k => (t.prio || "").includes(k)); return i < 0 ? 4 : i; }
+
+    function ensureWeekPlan() {
+      const g = appState.dailyHoursGoal || 3;
+      const w = appState.weekPlan || (appState.weekPlan = {});
+      if (!Array.isArray(w.hours) || w.hours.length !== 7) w.hours = [g, g, g, g, g, g, 0];
+      if (w.buffer == null) w.buffer = 15;
+      if (!w.hpt) w.hpt = 1.5;
+      if (!w.qph) w.qph = 15;
+      if (!w.mpv) w.mpv = 45;
+      if (w.timeMode !== "videos") w.timeMode = "fixed";
+      if (w.order !== "course") w.order = "pareto";
+      if (!Array.isArray(w.targets) || w.targets.length !== 5) w.targets = [85, 80, 75, 70, 65];
+      if (!Array.isArray(w.amber) || w.amber.length !== 5) w.amber = w.targets.map(t => Math.max(0, t - 10));
+      return w;
+    }
+
+    function updateWeekPlan() {
+      const w = ensureWeekPlan();
+      const num = (id, def, lo, hi) => { const v = parseFloat(String(document.getElementById(id)?.value).replace(",", ".")); return Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : def; };
+      w.hours = PLAN_DAYS.map((_, i) => num("plan-h-" + i, w.hours[i], 0, 16));
+      w.buffer = num("plan-buffer", w.buffer, 0, 50);
+      w.hpt = num("plan-hpt", w.hpt, 0.25, 8);
+      w.qph = num("plan-qph", w.qph, 3, 60);
+      w.mpv = num("plan-mpv", w.mpv, 10, 180);
+      w.timeMode = document.getElementById("plan-mode")?.value === "videos" ? "videos" : "fixed";
+      w.order = document.getElementById("plan-order")?.value === "course" ? "course" : "pareto";
+      w.targets = PLAN_PRIO.map((_, i) => num("plan-t-" + i, w.targets[i], 30, 100));
+      w.amber = PLAN_PRIO.map((_, i) => Math.min(w.targets[i], num("plan-a-" + i, w.amber[i], 0, 100)));
+      saveAppState(true);
+      refreshAllViews();
+    }
+
+    function initPlanInputs() {
+      const box = document.getElementById("plan-inputs");
+      if (!box || box.dataset.ready) return;
+      box.dataset.ready = "1";
+      const inp = (id, label, step, wd = "w-14") => `<label class="flex flex-col gap-0.5 text-[10px] font-semibold">${label}<input type="number" id="${id}" step="${step}" min="0" onchange="updateWeekPlan()" class="input-surface ${wd} px-1.5 py-1 font-mono text-xs text-center" /></label>`;
+      box.innerHTML = PLAN_DAYS.map((d, i) => inp("plan-h-" + i, d + " (h)", "0.5")).join("") +
+        inp("plan-buffer", "Margem %", "5") + `<label class="flex flex-col gap-0.5 text-[10px] font-semibold">Tempo por matéria<select id="plan-mode" onchange="updateWeekPlan()" class="input-surface px-1.5 py-1 text-xs"><option value="fixed">Fixo (h por matéria)</option><option value="videos">Pelo nº de vídeos (curso MedCof)</option></select></label>` + inp("plan-hpt", "h por matéria", "0.25", "w-20") + inp("plan-mpv", "min por vídeo (modo vídeos)", "5", "w-24") + inp("plan-qph", "questões / h", "1", "w-20") +
+        `<label class="flex flex-col gap-0.5 text-[10px] font-semibold">Ordem<select id="plan-order" onchange="updateWeekPlan()" class="input-surface px-1.5 py-1 text-xs"><option value="pareto">Prioridade + ordem dos blocos</option><option value="course">Ordem exata dos blocos</option></select></label>`;
+      document.getElementById("plan-targets").innerHTML = PLAN_PRIO.map((k, i) => `<div class="card-inset p-2 flex flex-col gap-1"><b>${k}</b><div class="flex gap-2">${inp("plan-t-" + i, "Verde ≥ %", "1")}${inp("plan-a-" + i, "Âmbar ≥ %", "1")}</div></div>`).join("");
+    }
+
+    // Acerto efetivo: sessões antigas pesam menos (meia-vida 60 dias) e a estimativa é puxada para 60%
+    // por 10 questões "de prior". Quem não pratica uma área volta para ~60% e sobe na lista (esquecimento).
+    function computePlannerAreas(w) {
+      const today = parseISODate(getTodayISO()), HL = 60, K = 10, P0 = 0.6;
+      const areas = {};
+      const get = name => { const k = normalizeKey(name); return areas[k] || (areas[k] = { name, ws: [], tg: [], done: 0, wF: 0, wC: 0, F: 0, C: 0, last: null, lF: 0, lC: 0, tp: {} }); };
+      (appState.scheduleTopics || []).forEach(t => {
+        if (!t.esp) return;
+        const a = get(t.esp), i = planPrioIdx(t);
+        a.ws.push(PLAN_W[i]); a.tg.push(w.targets[i]); if (t.done) a.done++;
+      });
+      planLogs().forEach(l => {
+        const f = parseInt(l.feitas) || 0, c = Math.min(f, parseInt(l.certas) || 0);
+        if (f <= 0 || !l.esp || !l.date) return;
+        const a = get(l.esp), age = Math.max(0, daysBetween(parseISODate(l.date), today)), wt = Math.pow(0.5, age / HL);
+        a.wF += wt * f; a.wC += wt * c; a.F += f; a.C += c;
+        if (!a.last || l.date > a.last) { a.last = l.date; a.lF = f; a.lC = c; }
+        else if (l.date === a.last) { a.lF += f; a.lC += c; }
+        if (l._base) return;
+        const tk = normalizeKey(l.topic || "Tema Geral"), tp = a.tp[tk] || (a.tp[tk] = { name: l.topic || "Tema Geral", wF: 0, wC: 0, F: 0 });
+        tp.wF += wt * f; tp.wC += wt * c; tp.F += f;
+      });
+      const mean = arr => arr.length ? arr.reduce((x, y) => x + y, 0) / arr.length : null;
+      return Object.values(areas).filter(a => a.F > 0 || a.done > 0).map(a => {
+        const imp = mean(a.ws) ?? 0.55, tgt = (mean(a.tg) ?? 75) / 100;
+        const p = (a.wC + K * P0) / (a.wF + K);
+        const since = a.last ? daysBetween(parseISODate(a.last), today) : null;
+        const stale = since === null ? 1 : Math.min(1, since / 90);
+        const oldErr = since !== null && since >= 21 && a.lF >= 5 && a.lC / a.lF < tgt - 0.10;
+        const score = imp * (Math.max(0, tgt - p) + 0.08 * stale + (oldErr ? 0.05 : 0));
+        const weak = Object.values(a.tp).filter(t => t.F >= 5).map(t => ({ name: t.name, p: (t.wC + K * P0) / (t.wF + K) }))
+          .filter(t => t.p < tgt).sort((x, y) => x.p - y.p).slice(0, 2);
+        return { name: a.name, tgt, p, raw: a.F ? a.C / a.F : null, F: a.F, since, oldErr, noQ: a.F === 0 && a.done > 0, score, weak };
+      }).sort((x, y) => y.score - x.score);
+    }
+
+    const PLAN_SIGLA = { "Clínica Médica": "CM", "Cirurgia Geral": "CIR", "Ginecologia e Obstetrícia": "GO", "Pediatria": "PED", "Medicina Preventiva": "PREV" };
+
+    function renderWeeklyPlanner(agg) {
+      const sum = document.getElementById("plan-summary");
+      if (!sum) return;
+      initPlanInputs();
+      const w = ensureWeekPlan();
+      const sync = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v; };
+      w.hours.forEach((v, i) => sync("plan-h-" + i, v));
+      sync("plan-buffer", w.buffer); sync("plan-hpt", w.hpt); sync("plan-qph", w.qph); sync("plan-mpv", w.mpv); sync("plan-order", w.order); sync("plan-mode", w.timeMode);
+      w.targets.forEach((v, i) => sync("plan-t-" + i, v));
+      w.amber.forEach((v, i) => sync("plan-a-" + i, v));
+      agg = agg || buildQuestionAggregates();
+      const focusEl = document.getElementById("plan-focus"), daysEl = document.getElementById("plan-days"), noteEl = document.getElementById("plan-note");
+      const clear = () => { focusEl.innerHTML = daysEl.innerHTML = noteEl.innerHTML = ""; };
+
+      const eff = w.hours.map(h => h * (1 - w.buffer / 100));
+      const U = eff.reduce((a, b) => a + b, 0);
+      if (U <= 0) { sum.innerHTML = "Informe suas horas de estudo da semana para gerar a sugestão."; clear(); return; }
+
+      // ---- dados de cada matéria (PDF do curso quando existir) ----
+      const useVideos = w.timeMode === "videos";
+      const vidH = useVideos ? w.mpv / 60 : w.hpt;   // horas de cada "unidade": 1 vídeo (modo vídeos) ou 1 matéria (modo fixo, serve para qualquer curso)
+      const vids = t => { if (!useVideos) return 1; const p = pdfInfo(t); return p ? p.videos : Math.max(1, Math.round(w.hpt / vidH)); };
+      const ixMap = new Map((appState.scheduleTopics || []).map((t, i) => [t.id, i]));
+      const blockOf = t => parseInt(String(t.block).replace(/\D/g, "")) || (pdfInfo(t) ? pdfInfo(t).block : 99);
+      const seqOf = t => { const p = pdfInfo(t); return p ? p.seq : 100000 + (ixMap.get(t.id) || 0); };   // dentro do bloco: ordem do PDF MedCof, senão a ordem da sua lista
+      const tier = t => { const i = planPrioIdx(t); return i <= 1 ? 0 : i - 1; };   // 0 núcleo (Diamante+Alta) · 1 Média · 2 Baixa · 3 Bônus
+      const pend = (appState.scheduleTopics || []).filter(t => !t.done).sort((a, b) => blockOf(a) - blockOf(b) || seqOf(a) - seqOf(b));
+      if (!pend.length) { sum.innerHTML = "✅ Todas as matérias do edital estão concluídas."; clear(); return; }
+
+      // ---- 1) quanto tempo da semana vai para matéria nova ----
+      const pace = window.__editalPace || {};
+      const avgV = pend.reduce((a, t) => a + vids(t), 0) / pend.length;
+      const wantedTopics = pace.daysLeft > 0 ? Math.ceil(pend.length / (pace.daysLeft / 7)) : (pace.perWeek ? Math.round(pace.perWeek) : null);
+      const wantedH = wantedTopics !== null ? wantedTopics * avgV * vidH : U * 0.5;
+      const contentH = Math.min(wantedH, U * 0.6);          // no máximo 60% do tempo em matéria nova
+      const share = contentH / U;
+      const capV = eff.map(e => e * share / vidH);          // capacidade de cada dia, em vídeos
+      const vBudget = Math.floor(capV.reduce((a, b) => a + b, 0) + 1e-9);
+
+      // ---- 2) fila: ordem do curso, núcleo antes do resto, áreas alternadas ----
+      let queue;
+      if (w.order === "course") queue = pend.slice();
+      else {
+        const b0 = blockOf(pend[0]);
+        let hi = b0 + 1, cand = pend.filter(t => blockOf(t) <= hi);
+        while (hi < b0 + 3 && cand.filter(t => tier(t) === 0).reduce((a, t) => a + vids(t), 0) < vBudget * 1.3) { hi++; cand = pend.filter(t => blockOf(t) <= hi); }
+        queue = [];
+        for (let tr = 0; tr <= 3; tr++) {
+          const byArea = {};
+          cand.filter(t => tier(t) === tr).forEach(t => (byArea[t.area] = byArea[t.area] || []).push(t));   // cada lista já está na ordem do curso (I antes de II)
+          const lists = Object.values(byArea);
+          for (let r = 0; lists.some(l => l.length > r); r++) lists.forEach(l => { if (l[r]) queue.push(l[r]); });
+        }
+      }
+
+      // ---- 3) escolhe as matérias que cabem INTEIRAS na semana (só a 1ª pode ser maior que a semana) ----
+      let remB = vBudget; const chosen = [];
+      for (const t of queue) {
+        if (remB <= 0) break;
+        const v = vids(t);
+        if (v <= remB) { chosen.push({ t, v, total: v, cont: false }); remB -= v; }
+        else if (!chosen.length) { chosen.push({ t, v: remB, total: v, cont: true }); remB = 0; }
+      }
+
+      // ---- 4) distribui os vídeos pelos dias ----
+      const dayItems = eff.map(() => []), dayLeft = capV.slice();
+      let di = 0;
+      for (const e of chosen) {
+        let todo = e.v, a = 1;
+        while (todo > 0 && di < 7) {
+          if (dayLeft[di] < 0.5) { di++; continue; }
+          const n = Math.min(todo, Math.max(1, Math.floor(dayLeft[di] + 0.5)));
+          dayItems[di].push({ t: e.t, a, b: a + n - 1, total: e.total });
+          dayLeft[di] -= n; todo -= n; a += n;
+        }
+      }
+
+      // ---- 5) questões e foco (acerto efetivo x meta) ----
+      const focus = computePlannerAreas(w).filter(a => a.score > 0.03).slice(0, 5);
+      let ai = 0, totalQ = 0, vidsPlaced = 0;
+      const rows = PLAN_DAYS.map((d, i) => {
+        if (w.hours[i] <= 0) return `<tr class="border-t" style="border-color: var(--border-color);"><td class="py-1.5 px-2 font-semibold">${d}</td><td colspan="3" class="px-2" style="color: var(--text-muted);">Descanso</td></tr>`;
+        const items = dayItems[i], nv = items.reduce((a, it) => a + (it.b - it.a + 1), 0);
+        vidsPlaced += nv;
+        const r = Math.max(0, eff[i] - nv * vidH), q = Math.floor(r * 0.7 * w.qph / 5) * 5;
+        totalQ += q;
+        const fa = r >= 0.5 ? (focus.length ? focus[ai++ % focus.length].name : "revisão geral") : "";
+        const tp = items.map(it => {
+          const part = (it.a === 1 && it.b === it.total) ? `${it.total} ${it.total > 1 ? "vídeos" : "vídeo"}` : `vídeos ${it.a}–${it.b} de ${it.total}`;
+          return `${_e(it.t.title)} <span class="font-mono text-[10px]" style="color: var(--text-muted);">${_e(PLAN_SIGLA[it.t.area] || it.t.area)} · ${_e(it.t.prio)}${useVideos ? " · " + part : ""}</span>`;
+        }).join("<br>") || "—";
+        return `<tr class="border-t align-top" style="border-color: var(--border-color);"><td class="py-1.5 px-2 font-semibold whitespace-nowrap">${d}</td><td class="px-2 font-mono whitespace-nowrap">${_h(w.hours[i])}h</td><td class="px-2">${tp}</td><td class="px-2">${q ? `~${q} questões · ` : ""}${fa ? _e(fa) : "—"}</td></tr>`;
+      }).join("");
+      daysEl.innerHTML = `<table class="w-full text-left"><thead><tr class="text-[10px] uppercase"><th class="py-1 px-2">Dia</th><th class="px-2">Horas</th><th class="px-2">Matéria nova${useVideos ? " (vídeos do curso)" : ""}</th><th class="px-2">Questões e foco</th></tr></thead><tbody>${rows}</tbody></table>`;
+
+      const doneNew = chosen.filter(e => !e.cont).length;
+      const bl = chosen.map(e => blockOf(e.t)), bmin = Math.min(...bl), bmax = Math.max(...bl);
+      const newPct = Math.round(vidsPlaced * vidH / U * 100);
+      const box = (t, v, sub) => `<div class="card-inset p-2.5"><div class="text-[10px] uppercase" style="color: var(--text-muted);">${t}</div><div class="text-base font-bold font-mono">${v}</div><div class="text-[10px]" style="color: var(--text-muted);">${sub}</div></div>`;
+      sum.innerHTML = box("Horas úteis", `${_h(U)}h`, `de ${_h(w.hours.reduce((a, b) => a + b, 0))}h, com ${w.buffer}% de margem`) +
+        box("Matérias novas", `${doneNew}`, chosen.length ? `${useVideos ? vidsPlaced + " vídeos · " : ""}${newPct}% do tempo · ${bmin === bmax ? "bloco " + bmin : "blocos " + bmin + "–" + bmax}` : "nada cabe com as horas atuais") +
+        box("Questões sugeridas", `~${totalQ}`, `${100 - newPct}% do tempo em questões e revisão de erros`);
+
+      const chip = (tx, c) => `<span class="px-1.5 py-0.5 text-[10px] font-semibold text-white" style="background:${c};">${tx}</span>`;
+      focusEl.innerHTML = focus.length ? focus.map(a => {
+        const chips = [];
+        if (a.p < a.tgt) chips.push(chip(`efetivo ${Math.round(a.p * 100)}% · alvo ${Math.round(a.tgt * 100)}%`, a.tgt - a.p > 0.15 ? "#dc2626" : "#d97706"));
+        if (a.since !== null && a.since >= 30) chips.push(chip(`sem prática há ${a.since} dias`, "#6b7280"));
+        if (a.oldErr) chips.push(chip("erro antigo sem retorno", "#7c3aed"));
+        if (a.noQ) chips.push(chip("estudada, sem questões", "#0284c7"));
+        return `<div class="card-inset p-2.5 flex flex-col gap-1"><b>${_e(a.name)}</b><div class="flex flex-wrap gap-1">${chips.join("")}</div>` +
+          (a.raw !== null ? `<div class="text-[10px]" style="color: var(--text-muted);">bruto: ${Math.round(a.raw * 100)}% em ${a.F} questões</div>` : "") +
+          (a.weak.length ? `<div>Mais frágeis: ${a.weak.map(t => `${_e(t.name)} (${Math.round(t.p * 100)}%)`).join(", ")}</div>` : "") + `</div>`;
+      }).join("") : `<div class="md:col-span-2">Nenhuma área abaixo da meta agora. Use as horas para matéria nova e revisão leve.</div>`;
+
+      const notes = [];
+      if (wantedTopics !== null && wantedH > U * 0.6) notes.push(`O ritmo necessário (${wantedTopics} matérias por semana${useVideos ? ", cerca de " + Math.round(wantedTopics * avgV) + " vídeos" : ""}) pediria perto de ${Math.ceil(wantedH / 0.6)}h úteis; com as suas, a matéria nova fica limitada a ${_h(U * 0.6)}h e o restante vai para questões.`);
+      const big = useVideos ? chosen.find(e => e.cont) : null;
+      if (big) notes.push(`"${big.t.title}" tem ${big.total} vídeos, mais do que cabe na semana: comece por ela e só marque como concluída ao terminar.`);
+      const noInfo = useVideos ? pend.filter(t => !pdfInfo(t)).length : 0;
+      if (noInfo) notes.push(`${noInfo} matérias sem dados do curso usaram o padrão de ${_h(w.hpt)}h cada.`);
+      if (agg.overdueCount > 0) notes.push(`Você tem ${agg.overdueCount} revisões atrasadas: vale usar o primeiro bloco de questões da semana para elas.`);
+      if (!planLogs().length) notes.push("Ainda não há questões registradas, então o foco usa só o que você já estudou.");
+      const nextUp = queue.filter(t => !chosen.some(e => e.t === t)).slice(0, 5).map(t => t.title);
+      if (nextUp.length) notes.push("Próximas na fila: " + nextUp.join(" · "));
+      notes.push(w.order === "course"
+        ? "Lógica: ordem exata dos blocos do seu cronograma (do menor para o maior) e, dentro de cada bloco, a ordem da lista. Cada matéria ocupa o tempo configurado e só entra na semana se couber inteira."
+        : "Lógica: a fila segue os blocos do seu cronograma, do menor para o maior. Nos 2 blocos atuais, o núcleo (Diamante + Alta) vem antes de Média, Baixa e Bônus; as áreas se alternam e a ordem dentro de cada área é mantida (I antes de II). Cada matéria ocupa o tempo configurado (h por matéria, ou nº de vídeos no modo vídeos) e só entra na semana se couber inteira.");
+      notes.push("Acerto efetivo: sessões recentes pesam mais (metade do peso a cada 60 dias) e a estimativa volta para ~60% em áreas sem prática, o que traz o esquecimento para o plano. É uma sugestão: ajuste horas, ordem e metas.");
+      noteEl.innerHTML = notes.map(n => `<div>• ${_e(n)}</div>`).join("");
+    }
+
+    // =========================================================================
+    // SINALIZADOR DE EXPECTATIVA: acerto recente de cada matéria x meta da sua importância
+    // =========================================================================
+    function isScheduleTitle(name) { const k = normalizeKey(name); return (appState.scheduleTopics || []).some(t => normalizeKey(t.title) === k); }
+    function matchScheduleEsp(name) { const k = normalizeKey(name); const t = (appState.scheduleTopics || []).find(t => t.esp && normalizeKey(t.esp) === k); return t ? t.esp : null; }
+
+    function checkQuestionTopicMatch() {
+      const el = document.getElementById("mq-topic"), warn = document.getElementById("mq-topic-warn");
+      if (!el || !warn) return;
+      const v = el.value.trim();
+      let msg = "", color = "#d97706";
+      if (v && !isScheduleTitle(v)) {
+        const esp = matchScheduleEsp(v);
+        if (esp) { msg = `ℹ️ "${esp}" é uma especialidade: será contada como questões gerais de ${esp} (entra nos totais e na especialidade, mas não no sinalizador de uma matéria).`; color = "#0284c7"; }
+        else msg = "⚠️ Essa matéria não existe no cronograma com esse nome. A questão entra nas estatísticas gerais, mas não no sinalizador nem no planejamento da matéria. Escolha pela lista para o nome ficar idêntico.";
+      }
+      warn.classList.toggle("hidden", !msg);
+      warn.style.color = color;
+      warn.textContent = msg;
+    }
+
+    function getTopicSignals() {
+      if (window.__topicSignals) return window.__topicSignals;
+      const w = ensureWeekPlan(), today = parseISODate(getTodayISO());
+      const logs = {};
+      (appState.qlogs || []).forEach(l => {
+        const f = parseInt(l.feitas) || 0, c = Math.min(f, parseInt(l.certas) || 0);
+        if (f <= 0 || !l.date) return;
+        const k = normalizeKey(l.topic);
+        (logs[k] = logs[k] || []).push({ age: daysBetween(parseISODate(l.date), today), f, c });
+      });
+      const map = {}, tiers = PLAN_PRIO.map(() => ({ topics: 0, ok: 0, close: 0, below: 0, f: 0, c: 0 }));
+      (appState.scheduleTopics || []).forEach(t => {
+        const arr = logs[normalizeKey(t.title)];
+        if (!arr) return;
+        const idx = planPrioIdx(t), target = w.targets[idx] / 100, amber = Math.min(w.amber[idx], w.targets[idx]) / 100;
+        let win = 30, n = 0, c = 0;
+        for (const wd of [30, 60, 90]) {
+          win = wd; n = 0; c = 0;
+          arr.forEach(x => { if (x.age >= 0 && x.age < wd) { n += x.f; c += x.c; } });
+          if (n >= 10) break;
+        }
+        let status;
+        if (n === 0) status = "stale";
+        else if (n < 10) status = "few";
+        else { const p = c / n; status = p >= target ? "ok" : (p >= amber ? "close" : "below"); }
+        map[t.id] = { n, c, win, idx, target, amber, pct: n ? c / n : 0, status, title: t.title };
+        if (status === "ok" || status === "close" || status === "below") { const T = tiers[idx]; T.topics++; T[status]++; T.f += n; T.c += c; }
+      });
+      return (window.__topicSignals = { map, tiers });
+    }
+
+    function topicSignalBadge(item) {
+      const s = getTopicSignals().map[item.id];
+      if (!s) return "";
+      const pct = Math.round(s.pct * 100);
+      const look = { ok: ["#16a34a", `✓ ${pct}%`], close: ["#d97706", `~ ${pct}%`], below: ["#dc2626", `▼ ${pct}%`], few: ["#6b7280", "… poucos"], stale: ["#6b7280", "… antigo"] }[s.status];
+      const tip = s.status === "stale" ? "Sem questões nos últimos 90 dias"
+        : s.status === "few" ? `Poucos dados: ${s.c}/${s.n} nos últimos ${s.win} dias (mínimo de 10 questões)`
+        : `${pct}% em ${s.n} questões (últimos ${s.win} dias) · ${PLAN_PRIO[s.idx]}: verde ≥ ${Math.round(s.target * 100)}%, âmbar ≥ ${Math.round(s.amber * 100)}%`;
+      return `<span class="px-1.5 py-0.5 text-[10px] font-bold font-mono text-white" style="background:${look[0]};" title="${_e(tip)}">${look[1]}</span>`;
+    }
+
+    function renderSignalCard() {
+      const tEl = document.getElementById("signal-tiers");
+      if (!tEl) return;
+      const w = ensureWeekPlan(), { map, tiers } = getTopicSignals();
+      const col = { ok: "#16a34a", close: "#d97706", below: "#dc2626" };
+      const lab = { ok: "✓ na meta", close: "~ perto", below: "▼ abaixo" };
+      tEl.innerHTML = PLAN_PRIO.map((k, i) => {
+        const T = tiers[i], target = w.targets[i] / 100, amber = Math.min(w.amber[i], w.targets[i]) / 100;
+        if (!T.topics) return `<div class="card-inset p-2.5"><b>${k}</b><div class="text-[10px]" style="color: var(--text-muted);">sem dados suficientes</div></div>`;
+        const p = T.c / T.f, st = p >= target ? "ok" : (p >= amber ? "close" : "below");
+        return `<div class="card-inset p-2.5 flex flex-col gap-0.5"><div class="flex items-center justify-between gap-1"><b>${k}</b><span class="px-1.5 py-0.5 text-[10px] font-bold text-white" style="background:${col[st]};">${lab[st]}</span></div>` +
+          `<div class="font-mono text-base font-bold">${Math.round(p * 100)}%</div><div class="text-[10px]" style="color: var(--text-muted);">verde ≥ ${Math.round(target * 100)}% · âmbar ≥ ${Math.round(amber * 100)}% · ${T.f} questões</div><div class="text-[10px]">${T.below} abaixo · ${T.close} perto · ${T.ok} na meta</div></div>`;
+      }).join("");
+      const below = Object.values(map).filter(s => s.status === "below").sort((a, b) => a.idx - b.idx || (a.pct - a.target) - (b.pct - b.target)).slice(0, 10);
+      document.getElementById("signal-list").innerHTML = below.length
+        ? `<div class="font-semibold mb-1">Matérias abaixo da meta (as mais importantes primeiro)</div>` + below.map(s =>
+          `<div class="flex justify-between gap-2 py-0.5 border-t" style="border-color: var(--border-color);"><span class="truncate">${_e(s.title)} <span class="font-mono text-[10px]" style="color: var(--text-muted);">${_e(PLAN_PRIO[s.idx])}</span></span><span class="font-mono shrink-0">${Math.round(s.pct * 100)}% / ${Math.round(s.target * 100)}% · ${s.n}q · ${s.win}d</span></div>`).join("")
+        : "";
+
+      // por especialidade: soma TODAS as questões da especialidade (com ou sem tema), janela adaptativa 30/60/90 dias
+      const espEl = document.getElementById("signal-esp");
+      if (espEl) {
+        const today = parseISODate(getTodayISO()), tg = {}, lg = {};
+        (appState.scheduleTopics || []).forEach(t => { if (!t.esp) return; const k = normalizeKey(t.esp), i = planPrioIdx(t); (tg[k] = tg[k] || { g: [], a: [] }); tg[k].g.push(w.targets[i]); tg[k].a.push(Math.min(w.amber[i], w.targets[i])); });
+        planLogs().forEach(l => {
+          const f = parseInt(l.feitas) || 0, c = Math.min(f, parseInt(l.certas) || 0);
+          if (f <= 0 || !l.esp || !l.date) return;
+          const k = normalizeKey(l.esp); (lg[k] = lg[k] || { name: l.esp, a: [] }).a.push({ age: daysBetween(parseISODate(l.date), today), f, c });
+        });
+        const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+        const rank = { below: 0, close: 1, ok: 2 };
+        const rows = Object.keys(lg).map(k => {
+          let win = 30, n = 0, c = 0;
+          for (const wd of [30, 60, 90]) { win = wd; n = 0; c = 0; lg[k].a.forEach(x => { if (x.age >= 0 && x.age < wd) { n += x.f; c += x.c; } }); if (n >= 10) break; }
+          if (n < 10) return null;
+          const g = (tg[k] ? mean(tg[k].g) : 75) / 100, am = (tg[k] ? mean(tg[k].a) : 65) / 100, p = c / n;
+          return { name: lg[k].name, p, g, n, win, st: p >= g ? "ok" : (p >= am ? "close" : "below") };
+        }).filter(Boolean).sort((x, y) => rank[x.st] - rank[y.st] || (x.p - x.g) - (y.p - y.g));
+        espEl.innerHTML = rows.length ? rows.map(r => `<div class="flex justify-between gap-2 py-0.5 border-t items-center" style="border-color: var(--border-color);"><span class="truncate">${_e(r.name)}</span><span class="shrink-0 flex items-center gap-1.5"><span class="font-mono text-[10px]" style="color: var(--text-muted);">meta ${Math.round(r.g * 100)}% · ${r.n}q · ${r.win}d</span><span class="px-1.5 py-0.5 text-[10px] font-bold font-mono text-white" style="background:${col[r.st]};">${r.st === "ok" ? "✓" : (r.st === "close" ? "~" : "▼")} ${Math.round(r.p * 100)}%</span></span></div>`).join("")
+          : `<div style="color: var(--text-muted);">Ainda não há 10 questões em nenhuma especialidade dentro de 90 dias.</div>`;
+      }
+    }
+
+
+    // =========================================================================
+    // PONTO DE PARTIDA: o que a pessoa já tinha feito antes de usar o site.
+    // Fica separado do progresso real: matérias marcadas aqui têm base=true e SEM data de conclusão
+    // (não entram no ritmo), e as questões ficam em appState.baseline (não entram em gráficos, metas, sequência nem revisões).
+    // =========================================================================
+    function planLogs() {
+      const out = (appState.qlogs || []).slice(), b = appState.baseline;
+      if (b && b.stats) Object.entries(b.stats).forEach(([esp, v]) => out.push({ esp, topic: "", date: b.date, feitas: v.f, certas: v.c, _base: true }));
+      return out;
+    }
+
+    function baselineHasRealData() {
+      return (appState.scheduleTopics || []).some(t => t.done && !t.base) || (appState.qlogs || []).length > 0 || (appState.studyLogs || []).length > 0;
+    }
+
+    function renderBaselineBanner() {
+      const el = document.getElementById("baseline-banner");
+      if (!el) return;
+      const show = !appState.baseline && !appState.baselineDismissed && !baselineHasRealData();
+      el.classList.toggle("hidden", !show);
+      el.innerHTML = show ? `<div class="card-surface p-3 flex flex-wrap items-center justify-between gap-2 text-xs"><span>👋 <b>Primeira vez por aqui?</b> Se você já estudou antes, marque o que já fez como ponto de partida: isso não altera o seu ritmo nem as suas estatísticas reais.</span><span class="flex gap-2"><button type="button" onclick="openBaselineModal()" class="retro-btn px-3 py-1 font-semibold text-white" style="background-color: var(--accent-teal);">Marcar o que já fiz</button><button type="button" onclick="dismissBaselineBanner()" class="retro-btn px-3 py-1 card-inset">Agora não</button></span></div>` : "";
+    }
+
+    function dismissBaselineBanner() { appState.baselineDismissed = true; saveAppState(true); renderBaselineBanner(); }
+
+    function closeBaselineModal() {
+      const m = document.getElementById("modal-baseline");
+      if (m) { m.classList.add("hidden"); m.classList.remove("flex"); }
+    }
+
+    function baselineToggleBlock(i, on) {
+      const k = (window.__blKeys || [])[i];
+      document.querySelectorAll("#bl-topics input[data-bl-block]").forEach(cb => { if (cb.dataset.blBlock === k && !cb.disabled) cb.checked = on; });
+    }
+
+    function openBaselineModal() {
+      const b = appState.baseline || {}, topics = appState.scheduleTopics || [];
+      document.getElementById("bl-date").value = b.date || getTodayISO();
+      const blocks = {};
+      topics.forEach(t => { const k = String(t.block || "Sem bloco"); (blocks[k] = blocks[k] || []).push(t); });
+      const keys = Object.keys(blocks).sort((x, y) => (parseInt(x.replace(/\D/g, "")) || 999) - (parseInt(y.replace(/\D/g, "")) || 999) || x.localeCompare(y));
+      window.__blKeys = keys;
+      document.getElementById("bl-topics").innerHTML = keys.map((k, i) => {
+        const list = blocks[k], nDone = list.filter(t => t.done).length;
+        return `<details class="card-inset"><summary class="cursor-pointer px-2 py-1.5 font-semibold flex items-center justify-between gap-2"><span>${_e(k)} <span class="font-mono text-[10px]" style="color: var(--text-muted);">(${nDone}/${list.length} concluídas)</span></span><span class="flex gap-1">` +
+          `<button type="button" onclick="event.preventDefault(); baselineToggleBlock(${i}, true)" class="retro-btn px-1.5 py-0.5 text-[10px] card-inset">marcar bloco</button><button type="button" onclick="event.preventDefault(); baselineToggleBlock(${i}, false)" class="retro-btn px-1.5 py-0.5 text-[10px] card-inset">limpar</button></span></summary>` +
+          `<div class="px-2 pb-2 flex flex-col gap-0.5">${list.map(t => { const real = t.done && !t.base; return `<label class="flex items-center gap-2"><input type="checkbox" class="topic-checkbox" id="bl-t-${t.id}" data-bl-block="${_e(k)}" ${t.done ? "checked" : ""} ${real ? "disabled" : ""} /><span class="truncate">${_e(t.title)}</span><span class="font-mono text-[10px] shrink-0" style="color: var(--text-muted);">${_e(PLAN_SIGLA[t.area] || t.area)}${real ? " · já marcada" : ""}</span></label>`; }).join("")}</div></details>`;
+      }).join("") || `<div style="color: var(--text-muted);">Seu cronograma está vazio. Adicione matérias com "+ Matéria" primeiro.</div>`;
+      const byArea = {};
+      topics.forEach(t => { if (t.esp) (byArea[t.area] = byArea[t.area] || new Set()).add(t.esp); });
+      const st = b.stats || {};
+      const num = (esp, k, ph) => `<input type="number" min="0" placeholder="${ph}" data-bl-esp="${_e(esp)}" data-k="${k}" value="${st[esp] ? st[esp][k] : ""}" class="input-surface w-20 px-1.5 py-1 font-mono text-xs text-center" />`;
+      document.getElementById("bl-stats").innerHTML = Object.keys(byArea).map(area => `<div class="font-semibold pt-2">${_e(area)}</div>` +
+        [...byArea[area]].map(esp => `<div class="flex items-center gap-2"><span class="flex-1 truncate">${_e(esp)}</span>${num(esp, "f", "feitas")}${num(esp, "c", "acertos")}</div>`).join("")).join("");
+      const m = document.getElementById("modal-baseline");
+      if (m) { m.classList.remove("hidden"); m.classList.add("flex"); }
+    }
+
+    function saveBaseline() {
+      const date = document.getElementById("bl-date").value || getTodayISO(), stats = {};
+      document.querySelectorAll("[data-bl-esp]").forEach(inp => {
+        const v = parseInt(inp.value);
+        if (Number.isFinite(v) && v >= 0) (stats[inp.dataset.blEsp] = stats[inp.dataset.blEsp] || { f: 0, c: 0 })[inp.dataset.k] = v;
+      });
+      for (const [esp, v] of Object.entries(stats)) {
+        if (v.c > v.f) { showToast(`Em ${esp}, os acertos não podem passar das questões feitas.`, "error"); return; }
+        if (!(v.f > 0)) delete stats[esp];
+      }
+      let n = 0;
+      (appState.scheduleTopics || []).forEach(t => {
+        const cb = document.getElementById("bl-t-" + t.id);
+        if (!cb || cb.disabled) return;
+        if (cb.checked && !t.done) { t.done = true; t.base = true; t.completedAt = null; n++; }
+        else if (!cb.checked && t.done && t.base) { t.done = false; t.base = false; t.completedAt = null; }
+      });
+      appState.baseline = { date, stats };
+      saveAppState(true);
+      closeBaselineModal();
+      refreshAllViews();
+      showToast(`Ponto de partida salvo (${n} matérias novas marcadas). Seu ritmo real continua zerado.`);
+    }
+
     function refreshAllViews() {
+      window.__topicSignals = null;
       const agg = buildQuestionAggregates();
       renderTopSummaryBar(agg);
       renderSidebarWidgets(agg);
       renderScheduleView();
       renderQuestionsTable(agg);
       renderStatisticsView(agg);
+      renderExamProjection();
+      renderWeeklyPlanner(agg);
+      renderSignalCard();
+      renderBaselineBanner();
       const chkAuto = document.getElementById("chk-auto-download");
       if (chkAuto) chkAuto.checked = !!appState.autoDownloadOnSave;
     }
@@ -5304,6 +5926,7 @@ let currentSceneryTheme = null;
         closeRenameGroupModal();
         closeResetConfirmModal();
         closeCloudAccountModal();
+        closeBaselineModal();
       } else if (e.key === "Enter") {
         const activeModal = document.querySelector(".modal-backdrop.flex");
         if (!activeModal) return;
