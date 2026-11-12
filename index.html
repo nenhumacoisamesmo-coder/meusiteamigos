@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Organizador de estudos</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&family=VT323&family=Silkscreen:wght@400;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
   <style>
     /* =====================================================================
-       SISTEMA DE TEMAS (RETRÔ 98 / CAMERON'S NIGHT / MAC OS / TEMA ANTIGO)
+       SISTEMA DE TEMAS (RETRÔ, MATRIX, BRAT, MINECRAFT, DARK FANTASY, FRUTIGER AERO)
        ===================================================================== */
     :root,
     html[data-theme="retro-98"] {
@@ -73,70 +73,194 @@
       --font-body: 'Inter', -apple-system, sans-serif;
     }
 
-    /* NOTURNO TERMINAL / CRT VERDE & ÂMBAAR (ESCURO) */
+    /* MATRIX (ESCURO - CHUVA DE CÓDIGO DIGITAL VERDE NEON) */
     html[data-theme="retro-crt"] {
       color-scheme: dark;
-      --bg-primary: #0a0f0d;
-      --bg-pattern: linear-gradient(rgba(16, 185, 129, 0.04) 1px, transparent 1px);
-      --bg-pattern-size: 100% 3px;
-      --bg-secondary: #111916;
-      --bg-tertiary: #090d0b;
-      --border-color: #284239;
-      --text-main: #d1fae5;
-      --text-muted: #6ee7b7;
-      --accent-teal: #10b981;
-      --accent-terracotta: #f59e0b;
-      --window-header-bg: linear-gradient(90deg, #064e3b, #111916);
-      --window-header-text: #a7f3d0;
-      --card-shadow: 2px 2px 0px #022c22;
-      --inset-shadow: inset 1px 1px 0px #022c22;
-      --btn-shadow: 1px 1px 0px #10b981;
+      --bg-primary: #020502;
+      --bg-pattern:
+        linear-gradient(rgba(0, 255, 65, 0.07) 1px, transparent 1px),
+        repeating-linear-gradient(90deg, rgba(0, 255, 65, 0.06) 0px, rgba(0, 255, 65, 0.06) 1px, transparent 1px, transparent 22px),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Ctext x='8' y='24' fill='rgba(0,255,65,0.11)' font-family='monospace' font-size='12'%3E10110%3C/text%3E%3Ctext x='64' y='72' fill='rgba(0,255,65,0.09)' font-family='monospace' font-size='12'%3E01001%3C/text%3E%3Ctext x='28' y='108' fill='rgba(0,255,65,0.12)' font-family='monospace' font-size='12'%3E MATRIX %3C/text%3E%3C/svg%3E");
+      --bg-pattern-size: 100% 3px, 22px 100%, 120px 120px;
+      --bg-secondary: rgba(4, 15, 6, 0.94);
+      --bg-tertiary: #020904;
+      --border-color: #00ff41;
+      --text-main: #7bff9a;
+      --text-muted: #00cc33;
+      --accent-teal: #00aa2b;
+      --accent-terracotta: #00ff41;
+      --window-header-bg: linear-gradient(90deg, #002b09, #00661a, #020904);
+      --window-header-text: #00ff41;
+      --card-shadow: 0 0 12px rgba(0, 255, 65, 0.22), inset 0 0 6px rgba(0, 255, 65, 0.14);
+      --inset-shadow: inset 0 0 6px rgba(0, 255, 65, 0.18);
+      --btn-shadow: 0 0 6px rgba(0, 255, 65, 0.35);
       --radius-box: 0px;
       --font-body: 'IBM Plex Mono', monospace;
     }
 
-    /* MONITOR ÂMBAR 1986 (CRT MONOCROMÁTICO LARANJA/DOURADO - ESCURO) */
-    html[data-theme="retro-amber"] {
-      color-scheme: dark;
-      --bg-primary: #120c05;
-      --bg-pattern: linear-gradient(rgba(245, 158, 11, 0.05) 1px, transparent 1px);
-      --bg-pattern-size: 100% 3px;
-      --bg-secondary: #1c1308;
-      --bg-tertiary: #0e0904;
-      --border-color: #6b4415;
-      --text-main: #fde68a;
-      --text-muted: #d97706;
-      --accent-teal: #f59e0b;
-      --accent-terracotta: #fbbf24;
-      --window-header-bg: linear-gradient(90deg, #78350f, #1c1308);
-      --window-header-text: #fef3c7;
-      --card-shadow: 2px 2px 0px #000000;
-      --inset-shadow: inset 1px 1px 0px #000000;
-      --btn-shadow: 1px 1px 0px #f59e0b;
+    /* BRAT (CHARLI XCX #8ACE00 COM FUNDO VERDE ESTAMPADO "brat") */
+    html[data-theme="brat"] {
+      color-scheme: light;
+      --bg-primary: #8ACE00;
+      --bg-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='220' viewBox='0 0 360 220'%3E%3Cdefs%3E%3Cfilter id='b' x='-10%25' y='-10%25' width='120%25' height='120%25'%3E%3CfeGaussianBlur stdDeviation='1.35'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='360' height='220' fill='%238ACE00'/%3E%3Cg filter='url(%23b)'%3E%3Ctext x='180' y='118' text-anchor='middle' font-family='Arial Narrow, Arial, Helvetica, sans-serif' font-size='88' font-weight='400' textLength='145' lengthAdjust='spacingAndGlyphs' fill='rgba(0,0,0,0.22)'%3Ebrat%3C/text%3E%3C/g%3E%3C/svg%3E");
+      --bg-pattern-size: 360px 220px;
+      --bg-secondary: rgba(138, 206, 0, 0.88);
+      --bg-tertiary: rgba(152, 220, 12, 0.92);
+      --border-color: #000000;
+      --text-main: #000000;
+      --text-muted: #141f00;
+      --accent-teal: #000000;
+      --accent-terracotta: #000000;
+      --window-header-bg: #000000;
+      --window-header-text: #8ACE00;
+      --card-shadow: 3px 3px 0px #000000;
+      --inset-shadow: none;
+      --btn-shadow: 2px 2px 0px #000000;
       --radius-box: 0px;
-      --font-body: 'IBM Plex Mono', monospace;
+      --font-body: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+    }
+    html[data-theme="brat"] body,
+    html[data-theme="brat"] button,
+    html[data-theme="brat"] h1,
+    html[data-theme="brat"] h2,
+    html[data-theme="brat"] h3,
+    html[data-theme="brat"] span,
+    html[data-theme="brat"] th {
+      text-transform: lowercase !important;
+      letter-spacing: -0.025em;
+    }
+    html[data-theme="brat"] h1 {
+      filter: blur(0.45px);
+      font-weight: 700;
     }
 
-    /* MS-DOS / NORTON COMMANDER AZUL CLÁSSICO (ESCURO) */
-    html[data-theme="retro-bios"] {
+    /* MINECRAFT JAVA EDITION (MENU CLÁSSICO DE PEDRA, GRAMA E BOTÕES 3D PIXELADOS) */
+    html[data-theme="minecraft-voxel"] {
       color-scheme: dark;
-      --bg-primary: #000055;
-      --bg-pattern: radial-gradient(rgba(0, 255, 255, 0.12) 1px, transparent 0);
-      --bg-pattern-size: 16px 16px;
-      --bg-secondary: #000080;
-      --bg-tertiary: #000040;
-      --border-color: #00ffff;
+      --bg-primary: #6699ff;
+      --bg-pattern:
+        linear-gradient(180deg, rgba(112, 166, 255, 0.88) 0%, rgba(164, 204, 255, 0.78) 48%, rgba(92, 158, 52, 0.92) 48%, rgba(71, 128, 38, 0.95) 54%, rgba(107, 74, 43, 0.97) 54%, rgba(77, 51, 29, 0.99) 100%);
+      --bg-pattern-size: 100% 100%;
+      --bg-secondary: #8b8b8b;
+      --bg-tertiary: #4a4a4a;
+      --border-color: #000000;
       --text-main: #ffffff;
-      --text-muted: #80ffff;
-      --accent-teal: #00aaaa;
+      --text-muted: #e0e0e0;
+      --accent-teal: #5c9e34;
       --accent-terracotta: #ffff55;
-      --window-header-bg: linear-gradient(90deg, #00aaaa, #000080);
-      --window-header-text: #ffff55;
-      --card-shadow: 3px 3px 0px #000022;
-      --inset-shadow: inset 1px 1px 0px #000022;
-      --btn-shadow: 2px 2px 0px #000022;
+      --window-header-bg: repeating-linear-gradient(90deg, #528c2c 0px, #528c2c 16px, #477d24 16px, #477d24 32px);
+      --window-header-text: #ffffff;
+      --card-shadow: inset 3px 3px 0px #c6c6c6, inset -3px -3px 0px #373737, 0 0 0 2px #000000, 5px 5px 0px rgba(0,0,0,0.45);
+      --inset-shadow: inset 3px 3px 0px #242424, inset -3px -3px 0px #a0a0a0;
+      --btn-shadow: inset 2px 2px 0px #b8b8b8, inset -2px -2px 0px #3b3b3b, 0 0 0 2px #000000;
       --radius-box: 0px;
-      --font-body: 'IBM Plex Mono', 'Tahoma', monospace;
+      --font-body: 'VT323', 'Silkscreen', 'IBM Plex Mono', monospace;
+    }
+    html[data-theme="minecraft-voxel"] body {
+      background-attachment: fixed;
+      font-size: 106%;
+      text-shadow: 2px 2px 0px #1f1f1f;
+    }
+    html[data-theme="minecraft-voxel"] .retro-btn {
+      background-color: #737373;
+      color: #ffffff !important;
+      text-shadow: 2px 2px 0px #222222;
+      border: 2px solid #000000 !important;
+      letter-spacing: 0.03em;
+    }
+    html[data-theme="minecraft-voxel"] .retro-btn:hover {
+      background-color: #7d89a8 !important;
+      border-color: #ffffa0 !important;
+      color: #ffffa0 !important;
+    }
+    html[data-theme="minecraft-voxel"] h1 {
+      font-family: 'Silkscreen', monospace !important;
+      letter-spacing: 0.04em;
+      color: #d8d8d8;
+      text-shadow: 0 3px 0 #3f3f3f, 3px 3px 0 #000000;
+    }
+
+    /* DARK FANTASY (CAVALEIRO NAS BRASAS & CASTELO SOMBRIO COM PARTÍCULAS DE FOGO) */
+    html[data-theme="dark-fantasy"] {
+      color-scheme: dark;
+      --bg-primary: #0b0706;
+      --bg-pattern:
+        radial-gradient(circle at 22% 85%, rgba(234, 88, 12, 0.28) 0%, transparent 45%),
+        radial-gradient(circle at 78% 18%, rgba(16, 185, 129, 0.14) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(153, 27, 27, 0.16) 0%, rgba(8, 5, 4, 0.98) 75%);
+      --bg-pattern-size: 100% 100%;
+      --bg-secondary: rgba(24, 17, 15, 0.93);
+      --bg-tertiary: rgba(14, 10, 9, 0.95);
+      --border-color: #784b27;
+      --text-main: #f3e5cf;
+      --text-muted: #bfa382;
+      --accent-teal: #c2410c;
+      --accent-terracotta: #f59e0b;
+      --window-header-bg: linear-gradient(90deg, #2b120a, #5c230e, #1a0d0a);
+      --window-header-text: #fcd34d;
+      --card-shadow: inset 1px 1px 0px rgba(251, 191, 36, 0.32), inset -1px -1px 0px #000000, 0 6px 20px rgba(0, 0, 0, 0.85);
+      --inset-shadow: inset 2px 2px 5px #000000, inset -1px -1px 0px rgba(180, 83, 9, 0.25);
+      --btn-shadow: inset 1px 1px 0px rgba(253, 224, 71, 0.4), 0 2px 6px rgba(0, 0, 0, 0.8);
+      --radius-box: 2px;
+      --font-body: 'Cinzel', Georgia, 'Times New Roman', serif;
+    }
+    html[data-theme="dark-fantasy"] body {
+      background-attachment: fixed;
+    }
+
+    /* FRUTIGER AERO 2007 (CÉU AZUL, COLINAS VERDES, BOLHAS DE VIDRO & PEIXES TROPICAIS) */
+    html[data-theme="frutiger-aero"] {
+      color-scheme: light;
+      --bg-primary: #0ea5e9;
+      --bg-pattern:
+        radial-gradient(circle at 82% 14%, rgba(255, 255, 255, 0.92) 0%, rgba(186, 230, 253, 0.45) 16%, transparent 38%),
+        linear-gradient(180deg, #0284c7 0%, #38bdf8 46%, #bae6fd 66%, #4ade80 71%, #16a34a 86%, #15803d 100%);
+      --bg-pattern-size: 100% 100%;
+      --bg-secondary: rgba(240, 252, 255, 0.82);
+      --bg-tertiary: rgba(255, 255, 255, 0.90);
+      --border-color: rgba(255, 255, 255, 0.92);
+      --text-main: #063954;
+      --text-muted: #0e5a80;
+      --accent-teal: #0284c7;
+      --accent-terracotta: #16a34a;
+      --window-header-bg: linear-gradient(180deg, rgba(255,255,255,0.75) 0%, rgba(56,189,248,0.85) 48%, rgba(2,132,199,0.95) 52%, rgba(16,185,129,0.88) 100%);
+      --window-header-text: #042f49;
+      --card-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.95), 0 10px 26px rgba(2, 100, 160, 0.28), 0 0 0 1px rgba(14, 165, 233, 0.45);
+      --inset-shadow: inset 0 2px 5px rgba(2, 132, 199, 0.16), inset 0 -1px 1px rgba(255, 255, 255, 0.9);
+      --btn-shadow: inset 0 2px 1px rgba(255, 255, 255, 0.9), 0 3px 8px rgba(2, 132, 199, 0.28);
+      --radius-box: 12px;
+      --font-body: 'Segoe UI', 'Inter', Tahoma, sans-serif;
+    }
+    html[data-theme="frutiger-aero"] body {
+      background-attachment: fixed;
+    }
+    html[data-theme="frutiger-aero"] .card-surface {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* JOGOS RETRÔ / FLIPERAMA 1987 (ESCURO) */
+    html[data-theme="arcade-87"] {
+      color-scheme: dark;
+      --bg-primary: #090418;
+      --bg-pattern:
+        linear-gradient(rgba(236, 72, 153, 0.13) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.13) 1px, transparent 1px);
+      --bg-pattern-size: 28px 28px;
+      --bg-secondary: #140a2e;
+      --bg-tertiary: #0b051c;
+      --border-color: #f43f5e;
+      --text-main: #fdf4ff;
+      --text-muted: #67e8f9;
+      --accent-teal: #ec4899;
+      --accent-terracotta: #facc15;
+      --window-header-bg: linear-gradient(90deg, #db2777, #7c3aed, #0891b2);
+      --window-header-text: #fef08a;
+      --card-shadow: 3px 3px 0px #22d3ee;
+      --inset-shadow: inset 2px 2px 0px #000000;
+      --btn-shadow: 2px 2px 0px #facc15;
+      --radius-box: 0px;
+      --font-body: 'VT323', 'IBM Plex Mono', monospace;
     }
 
     /* CYBER Y2K / WINAMP 1999 (ESCURO ROXO & CIANO) */
@@ -183,6 +307,162 @@
       --font-body: 'Tahoma', 'Verdana', sans-serif;
     }
 
+    /* MINECRAFT -> BANCADA DE OBSIDIANA (VOXEL) */
+    html[data-theme="voxel-craft"] {
+      color-scheme: light;
+      --bg-primary: #3b2d22;
+      --bg-pattern:
+        linear-gradient(90deg, rgba(0,0,0,0.16) 2px, transparent 2px),
+        linear-gradient(0deg, rgba(0,0,0,0.16) 2px, transparent 2px);
+      --bg-pattern-size: 24px 24px;
+      --bg-secondary: #c6c6c6;
+      --bg-tertiary: #8b8b8b;
+      --border-color: #1e1e1e;
+      --text-main: #1d1d1d;
+      --text-muted: #3f3f3f;
+      --accent-teal: #3c8527;
+      --accent-terracotta: #b91c1c;
+      --window-header-bg: linear-gradient(180deg, #5c9e31 0%, #3c8527 65%, #593d29 65%, #473020 100%);
+      --window-header-text: #ffffff;
+      --card-shadow: inset 3px 3px 0px #ffffff, inset -3px -3px 0px #555555, 4px 4px 0px #000000;
+      --inset-shadow: inset 2px 2px 0px #373737, inset -2px -2px 0px #ffffff;
+      --btn-shadow: inset 2px 2px 0px #ffffff, inset -2px -2px 0px #555555, 2px 2px 0px #000000;
+      --radius-box: 0px;
+      --font-body: 'IBM Plex Mono', 'Tahoma', monospace;
+    }
+    html[data-theme="voxel-craft"] .card-inset {
+      background-color: #dcdcdc;
+    }
+
+    /* JOGOS RETRÔ -> FICHA DE FLIPERAMA 1987 (ESCURO) */
+    html[data-theme="arcade-rom"] {
+      color-scheme: dark;
+      --bg-primary: #080614;
+      --bg-pattern:
+        linear-gradient(rgba(0, 240, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 0, 102, 0.07) 1px, transparent 1px);
+      --bg-pattern-size: 20px 20px;
+      --bg-secondary: #130f29;
+      --bg-tertiary: #0a0718;
+      --border-color: #ff2a85;
+      --text-main: #f8fafc;
+      --text-muted: #38bdf8;
+      --accent-teal: #00e5ff;
+      --accent-terracotta: #ffbe0b;
+      --window-header-bg: linear-gradient(90deg, #ff0055, #7b2cbf, #00b4d8);
+      --window-header-text: #ffee32;
+      --card-shadow: inset 1px 1px 0px #00f0ff, 4px 4px 0px #ff0055;
+      --inset-shadow: inset 2px 2px 0px #04020a, inset -1px -1px 0px #7b2cbf;
+      --btn-shadow: 2px 2px 0px #00e5ff;
+      --radius-box: 0px;
+      --font-body: 'IBM Plex Mono', 'Verdana', monospace;
+    }
+
+    /* VAPORWAVE AESTHETIC -> PLAZA DE MÁRMORE 1984 (ESCURO) */
+    html[data-theme="helios-plaza"] {
+      color-scheme: dark;
+      --bg-primary: #1c0d30;
+      --bg-pattern:
+        linear-gradient(rgba(255, 113, 206, 0.14) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(1, 205, 254, 0.14) 1px, transparent 1px);
+      --bg-pattern-size: 28px 28px;
+      --bg-secondary: #281542;
+      --bg-tertiary: #160926;
+      --border-color: #01cdfe;
+      --text-main: #fff5fb;
+      --text-muted: #ff9de2;
+      --accent-teal: #05ffa1;
+      --accent-terracotta: #ff71ce;
+      --window-header-bg: linear-gradient(90deg, #ff71ce 0%, #b967ff 52%, #01cdfe 100%);
+      --window-header-text: #140724;
+      --card-shadow: inset 1px 1px 0px #ffb8e6, 4px 4px 0px #01cdfe;
+      --inset-shadow: inset 1px 1px 0px #0b0314, inset -1px -1px 0px #b967ff;
+      --btn-shadow: 2px 2px 0px #ff71ce;
+      --radius-box: 0px;
+      --font-body: 'Verdana', 'Tahoma', sans-serif;
+    }
+
+    /* DARK FANTASY -> CÓDICE DE CINZAS & SANGUE (ESCURO) */
+    html[data-theme="grimorio-cinzas"] {
+      color-scheme: dark;
+      --bg-primary: #0b0908;
+      --bg-pattern: radial-gradient(rgba(194, 142, 58, 0.12) 1px, transparent 1px);
+      --bg-pattern-size: 26px 26px;
+      --bg-secondary: #161311;
+      --bg-tertiary: #0e0c0a;
+      --border-color: #6e552f;
+      --text-main: #e7dcc8;
+      --text-muted: #a39278;
+      --accent-teal: #b8860b;
+      --accent-terracotta: #991b1b;
+      --window-header-bg: linear-gradient(90deg, #3b0d0d 0%, #1c1613 60%, #4a371c 100%);
+      --window-header-text: #e7c888;
+      --card-shadow: inset 0 0 0 1px rgba(231, 200, 136, 0.14), 0 4px 12px rgba(0, 0, 0, 0.8);
+      --inset-shadow: inset 1px 1px 3px #050404;
+      --btn-shadow: inset 0 1px 0 rgba(231, 200, 136, 0.25), 2px 2px 0px #000000;
+      --radius-box: 2px;
+      --font-body: 'Newsreader', Georgia, serif;
+    }
+    html[data-theme="grimorio-cinzas"] .retro-titlebar,
+    html[data-theme="grimorio-cinzas"] h1,
+    html[data-theme="grimorio-cinzas"] h2,
+    html[data-theme="grimorio-cinzas"] h3 {
+      font-family: 'Cinzel', 'Newsreader', Georgia, serif;
+      letter-spacing: 0.04em;
+    }
+
+    /* FRUTIGER AERO -> ORVALHO DE VIDRO 2007 (CLARO) */
+    html[data-theme="orvalho-2007"] {
+      color-scheme: light;
+      --bg-primary: #c8f0f8;
+      --bg-pattern: linear-gradient(155deg, #bae6fd 0%, #d9f99d 48%, #a5f3fc 100%);
+      --bg-pattern-size: 100% 100%;
+      --bg-secondary: rgba(248, 253, 255, 0.92);
+      --bg-tertiary: #e6f7fc;
+      --border-color: #38bdf8;
+      --text-main: #083344;
+      --text-muted: #0369a1;
+      --accent-teal: #0284c7;
+      --accent-terracotta: #16a34a;
+      --window-header-bg: linear-gradient(180deg, #a5f3fc 0%, #38bdf8 48%, #0284c7 51%, #22d3ee 100%);
+      --window-header-text: #042f2e;
+      --card-shadow: inset 0 1px 0 #ffffff, 0 6px 16px rgba(2, 132, 199, 0.18);
+      --inset-shadow: inset 0 1px 3px rgba(2, 132, 199, 0.18), inset 0 -1px 0 #ffffff;
+      --btn-shadow: inset 0 1px 0 #ffffff, 0 2px 5px rgba(2, 132, 199, 0.22);
+      --radius-box: 10px;
+      --font-body: 'Trebuchet MS', 'Segoe UI', 'Inter', sans-serif;
+    }
+
+    /* FRUTIGER METRO / BRAT -> brat */
+    html[data-theme="brat"] {
+      color-scheme: light;
+      --bg-primary: #8ACE00;
+      --bg-pattern:
+        linear-gradient(135deg, rgba(0,0,0,0.06) 25%, transparent 25%),
+        linear-gradient(225deg, rgba(0,0,0,0.06) 25%, transparent 25%);
+      --bg-pattern-size: 28px 28px;
+      --bg-secondary: #f6ffe5;
+      --bg-tertiary: #e6f9b5;
+      --border-color: #000000;
+      --text-main: #000000;
+      --text-muted: #2d4200;
+      --accent-teal: #000000;
+      --accent-terracotta: #4a7000;
+      --window-header-bg: #000000;
+      --window-header-text: #8ACE00;
+      --card-shadow: 4px 4px 0px #000000;
+      --inset-shadow: none;
+      --btn-shadow: 2px 2px 0px #000000;
+      --radius-box: 0px;
+      --font-body: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+    }
+    html[data-theme="brat"] h1,
+    html[data-theme="brat"] .retro-titlebar {
+      text-transform: lowercase;
+      letter-spacing: -0.02em;
+      font-family: 'Arial Narrow', Arial, sans-serif;
+    }
+
     /* TEMA ANTIGO CLARO (PRESERVADO EXATAMENTE COMO ESTAVA) */
     html[data-theme="old-light"] {
       color-scheme: light;
@@ -205,26 +485,48 @@
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    /* TEMA ANTIGO ESCURO (PRESERVADO EXATAMENTE COMO ESTAVA) */
-    html[data-theme="old-dark"] {
-      color-scheme: dark;
-      --bg-primary: #121314;
-      --bg-pattern: none;
-      --bg-pattern-size: auto;
-      --bg-secondary: #18191b;
-      --bg-tertiary: #222428;
-      --border-color: #2b2d31;
-      --text-main: #ededec;
-      --text-muted: #8b8d93;
-      --accent-teal: #3b82f6;
-      --accent-terracotta: #d97757;
-      --window-header-bg: transparent;
-      --window-header-text: #ededec;
-      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-      --inset-shadow: none;
-      --btn-shadow: none;
-      --radius-box: 8px;
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* ANIMAÇÕES E GIFS NATIVOS DE TEMA (DARK FANTASY, FRUTIGER AERO, MINECRAFT) */
+    @keyframes floatAeroBubble {
+      0% { transform: translateY(105vh) translateX(0px) scale(0.85); opacity: 0; }
+      15% { opacity: 0.85; }
+      50% { transform: translateY(50vh) translateX(22px) scale(1.03); }
+      85% { opacity: 0.85; }
+      100% { transform: translateY(-18vh) translateX(-18px) scale(0.95); opacity: 0; }
+    }
+    @keyframes swimTropicalFish {
+      0% { transform: translateX(-18vw) translateY(0px); }
+      50% { transform: translateX(50vw) translateY(-16px); }
+      100% { transform: translateX(115vw) translateY(6px); }
+    }
+    @keyframes riseDarkEmber {
+      0% { transform: translateY(102vh) translateX(0px) scale(1); opacity: 0; }
+      20% { opacity: 0.95; }
+      75% { opacity: 0.7; }
+      100% { transform: translateY(-12vh) translateX(42px) scale(0.35); opacity: 0; }
+    }
+    @keyframes torchFlicker {
+      0%, 100% { transform: scale(1) rotate(-1deg); filter: drop-shadow(0 0 8px #f97316); }
+      50% { transform: scale(1.12) rotate(2deg); filter: drop-shadow(0 0 14px #facc15); }
+    }
+    @keyframes mcSplashPulse {
+      0%, 100% { transform: rotate(-10deg) scale(1); }
+      50% { transform: rotate(-10deg) scale(1.08); }
+    }
+    @keyframes mcCloudDrift {
+      0% { transform: translateX(-25vw); }
+      100% { transform: translateX(115vw); }
+    }
+
+    #theme-fx-stage {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    header, .max-w-\[1520px\] {
+      position: relative;
+      z-index: 10;
     }
 
     html[data-theme="cameron-dark"] {
@@ -478,7 +780,11 @@
       
       <!-- Título & Status de Salvamento + Pessoas Online Agora -->
       <div class="flex items-center gap-3 flex-wrap">
-        <h1 class="font-serif-title font-semibold text-xl sm:text-2xl tracking-tight">Organizador de estudos</h1>
+        <div class="relative flex items-center gap-2">
+          <h1 class="font-serif-title font-semibold text-xl sm:text-2xl tracking-tight">Organizador de estudos</h1>
+          <!-- Badge/GIF dinâmico do Tema (Cavaleiro/Tocha, Bolha/Peixe, Minecraft Splash, brat) -->
+          <span id="theme-header-mascot" class="hidden sm:inline-flex items-center"></span>
+        </div>
         <div class="flex items-center gap-2 text-xs" style="color: var(--text-muted);">
           <span class="hidden sm:inline">|</span>
           <span id="live-users-pill" class="card-inset px-2 py-0.5 font-mono text-[11px] flex items-center gap-1.5" title="Pessoas com o site aberto neste momento">
@@ -500,12 +806,15 @@
           <label for="theme-select" class="text-[11px] font-medium" style="color: var(--text-muted);">Tema:</label>
           <select id="theme-select" onchange="changeThemeMode(this.value)" class="px-1.5 py-0.5 font-medium text-xs focus:outline-none cursor-pointer" style="background-color: var(--bg-tertiary); color: var(--text-main);">
             <option value="retro-98">Retrô 98 / Encarta</option>
+            <option value="brat">brat</option>
+            <option value="minecraft-voxel">Vila de Blocos / Java Edition</option>
+            <option value="dark-fantasy">Juramento das Brasas (Escuro)</option>
+            <option value="frutiger-aero">Brisa de Vidro / Aero 2007</option>
+            <option value="retro-crt">Matrix (Escuro)</option>
+            <option value="arcade-87">Ficha de Fliperama 1987 (Escuro)</option>
             <option value="cameron-dark">Cameron's Night (Escuro)</option>
             <option value="retro-paper">Mac Clássico / Papel</option>
             <option value="retro-snes">16-Bit Manual / Cartucho</option>
-            <option value="retro-crt">Terminal Médico (Escuro)</option>
-            <option value="retro-amber">Monitor Âmbar 86 (Escuro)</option>
-            <option value="retro-bios">MS-DOS / Norton Azul (Escuro)</option>
             <option value="retro-vapor">Cyber Y2K / Winamp (Escuro)</option>
             <option value="old-light">Tema Antigo (Claro)</option>
             <option value="old-dark">Tema Antigo (Escuro)</option>
@@ -513,6 +822,7 @@
           <!-- Paleta de Cores de Destaque -->
           <div class="flex items-center gap-1 pl-1.5 border-l" style="border-color: var(--border-color);" title="Escolher cor de destaque">
             <button type="button" onclick="setCustomAccent('#000080')" class="color-swatch" style="background:#000080;" title="Azul Naval 98"></button>
+            <button type="button" onclick="setCustomAccent('#8ACE00')" class="color-swatch" style="background:#8ACE00;" title="brat (#8ACE00)"></button>
             <button type="button" onclick="setCustomAccent('#235347')" class="color-swatch" style="background:#235347;" title="Verde Musgo"></button>
             <button type="button" onclick="setCustomAccent('#800020')" class="color-swatch" style="background:#800020;" title="Bordô Clássico"></button>
             <button type="button" onclick="setCustomAccent('#4338ca')" class="color-swatch" style="background:#4338ca;" title="Índigo Cosmos"></button>
@@ -1842,6 +2152,9 @@
 
   <!-- TOAST DE FEEDBACK -->
   <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- PALCO DE ANIMAÇÕES / GIFS NATIVOS DE CADA TEMA (DARK FANTASY, FRUTIGER AERO, MINECRAFT) -->
+  <div id="theme-fx-stage" aria-hidden="true"></div>
 
   <script>
     // =========================================================================
@@ -4639,10 +4952,20 @@
 
     function applyTheme() {
       const root = document.documentElement;
+      // Caso o usuário estivesse em um tema removido, migra suavemente
+      const removedMap = {
+        "retro-amber": "dark-fantasy",
+        "retro-bios": "retro-crt",
+        "plaza-84": "retro-vapor"
+      };
+      if (removedMap[appState.themeMode]) {
+        appState.themeMode = removedMap[appState.themeMode];
+      }
+
       const theme = appState.themeMode || "retro-98";
       root.setAttribute("data-theme", theme);
 
-      const darkThemes = ["cameron-dark", "retro-crt", "retro-amber", "retro-bios", "retro-vapor", "old-dark"];
+      const darkThemes = ["cameron-dark", "retro-crt", "dark-fantasy", "arcade-87", "minecraft-voxel", "retro-vapor", "old-dark"];
       const isDarkTheme = darkThemes.includes(theme);
       if (isDarkTheme) {
         root.classList.add("dark");
@@ -4664,6 +4987,104 @@
       const revSel = document.getElementById("rev-algo-select");
       if (revSel && appState.spacedRepMode) {
         revSel.value = appState.spacedRepMode;
+      }
+
+      renderThemeAnimatedStage(theme);
+    }
+
+    function renderThemeAnimatedStage(theme) {
+      const stage = document.getElementById("theme-fx-stage");
+      const mascot = document.getElementById("theme-header-mascot");
+      if (!stage || !mascot) return;
+
+      if (theme === "dark-fantasy") {
+        // GIF/Animação Dark Fantasy: Brasas de fogo subindo, castelo gótico ao fundo, cavaleiro ajoelhado e tocha viva no topo
+        mascot.innerHTML = `
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-bold border border-amber-600/60 bg-black/60 text-amber-300">
+            <span style="display:inline-block; animation: torchFlicker 1.4s infinite ease-in-out;">🔥</span>
+            <span>BONFIRE LIT</span>
+          </span>
+        `;
+        let embersHtml = "";
+        for (let i = 0; i < 18; i++) {
+          const left = (i * 5.7) % 98;
+          const dur = 6 + (i % 5) * 1.8;
+          const delay = (i * 0.7) % 6;
+          const size = 4 + (i % 3) * 3;
+          embersHtml += `<div style="position:absolute; left:${left}%; bottom:-20px; width:${size}px; height:${size}px; border-radius:999px; background:radial-gradient(circle, #fde047 0%, #f97316 60%, transparent 100%); box-shadow:0 0 10px #ea580c; animation: riseDarkEmber ${dur}s linear ${delay}s infinite;"></div>`;
+        }
+        stage.innerHTML = `
+          ${embersHtml}
+          <!-- Silhueta de Castelo Gótico Sombrio e Cavaleiro Ajoelhado nas Brasas -->
+          <svg viewBox="0 0 320 200" style="position:fixed; right:12px; bottom:0; width:260px; height:165px; opacity:0.32; filter:drop-shadow(0 0 12px rgba(234,88,12,0.45));">
+            <path d="M180 200 L180 95 L192 60 L204 95 L204 115 L220 115 L220 55 L235 18 L250 55 L250 110 L268 110 L268 75 L280 42 L292 75 L292 200 Z" fill="#120907" stroke="#78350f" stroke-width="1.2"/>
+            <circle cx="235" cy="48" r="6" fill="#34d399" opacity="0.75">
+              <animate attributeName="opacity" values="0.35;0.95;0.35" dur="2.6s" repeatCount="indefinite"/>
+            </circle>
+            <!-- Cavaleiro ajoelhado com espada fincada -->
+            <g transform="translate(55, 112)">
+              <rect x="46" y="10" width="3" height="75" fill="#9ca3af"/>
+              <rect x="38" y="24" width="19" height="4" fill="#d97706"/>
+              <circle cx="24" cy="22" r="9" fill="#57534e" stroke="#f59e0b" stroke-width="1"/>
+              <path d="M12 32 Q24 28 36 42 L40 85 L8 85 Z" fill="#292524" stroke="#78350f" stroke-width="1"/>
+              <circle cx="47" cy="82" r="14" fill="rgba(249,115,22,0.45)">
+                <animate attributeName="r" values="10;18;10" dur="1.6s" repeatCount="indefinite"/>
+              </circle>
+            </g>
+          </svg>
+        `;
+      } else if (theme === "frutiger-aero") {
+        // GIF/Animação Frutiger Aero: Bolhas glossy subindo e peixinhos tropicais nadando
+        mascot.innerHTML = `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border border-white/90 bg-white/60 text-sky-900 shadow-xs">
+            <span>🫧</span>
+            <span>🐠 Aero Live</span>
+          </span>
+        `;
+        let bubblesHtml = "";
+        for (let i = 0; i < 12; i++) {
+          const left = (i * 8.5 + 4) % 96;
+          const size = 22 + (i % 4) * 16;
+          const dur = 9 + (i % 5) * 2.5;
+          const delay = (i * 1.1) % 7;
+          bubblesHtml += `
+            <div style="position:absolute; left:${left}%; bottom:-60px; width:${size}px; height:${size}px; border-radius:999px; background:radial-gradient(circle at 30% 28%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.4) 22%, rgba(56,189,248,0.22) 65%, rgba(16,185,129,0.35) 100%); border:1.5px solid rgba(255,255,255,0.85); box-shadow:inset 0 0 8px rgba(255,255,255,0.8); animation: floatAeroBubble ${dur}s ease-in-out ${delay}s infinite;"></div>
+          `;
+        }
+        stage.innerHTML = `
+          ${bubblesHtml}
+          <div style="position:fixed; top:22%; left:0; font-size:28px; opacity:0.65; filter:drop-shadow(0 4px 6px rgba(2,132,199,0.35)); animation: swimTropicalFish 22s linear infinite;">🐠</div>
+          <div style="position:fixed; top:68%; left:0; font-size:22px; opacity:0.55; animation: swimTropicalFish 29s linear 6s infinite;">🐟</div>
+        `;
+      } else if (theme === "minecraft-voxel") {
+        // Minecraft Java Edition: Splash Text amarelo pulsando + nuvens quadradas e Golem/Creeper em blocos
+        mascot.innerHTML = `
+          <span style="display:inline-block; color:#ffff55; font-family:'VT323',monospace; font-size:15px; font-weight:700; text-shadow:2px 2px 0 #3f3f00; animation: mcSplashPulse 1.5s infinite ease-in-out; margin-left:6px;">
+            Yay, R1 for everyone!
+          </span>
+        `;
+        stage.innerHTML = `
+          <!-- Nuvens Voxel Quadradas -->
+          <div style="position:fixed; top:8%; left:0; width:140px; height:36px; background:rgba(255,255,255,0.75); box-shadow: 24px -14px 0 rgba(255,255,255,0.75), 52px 8px 0 rgba(230,240,255,0.7); animation: mcCloudDrift 38s linear infinite;"></div>
+          <div style="position:fixed; top:16%; left:0; width:110px; height:28px; background:rgba(255,255,255,0.68); box-shadow: 18px -12px 0 rgba(255,255,255,0.68); animation: mcCloudDrift 52s linear 14s infinite;"></div>
+          <!-- Ícone Pixel Art de Bloco de Grama / Copper Golem no canto inferior -->
+          <svg width="76" height="76" viewBox="0 0 16 16" shape-rendering="crispEdges" style="position:fixed; left:14px; bottom:14px; opacity:0.88; filter:drop-shadow(3px 3px 0 #000);">
+            <rect x="6" y="0" width="4" height="2" fill="#d97742"/>
+            <rect x="7" y="2" width="2" height="2" fill="#b85d2e"/>
+            <rect x="3" y="4" width="10" height="6" fill="#c86b3c"/>
+            <rect x="4" y="6" width="2" height="2" fill="#fde047"/>
+            <rect x="10" y="6" width="2" height="2" fill="#fde047"/>
+            <rect x="7" y="7" width="2" height="3" fill="#9a4820"/>
+            <rect x="4" y="10" width="8" height="4" fill="#b85d2e"/>
+            <rect x="2" y="10" width="2" height="4" fill="#9a4820"/>
+            <rect x="12" y="10" width="2" height="4" fill="#9a4820"/>
+            <rect x="4" y="14" width="3" height="2" fill="#7c3814"/>
+            <rect x="9" y="14" width="3" height="2" fill="#7c3814"/>
+          </svg>
+        `;
+      } else {
+        mascot.innerHTML = "";
+        stage.innerHTML = "";
       }
     }
 
