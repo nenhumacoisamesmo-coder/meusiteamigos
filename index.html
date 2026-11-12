@@ -73,7 +73,7 @@
       --font-body: 'Inter', -apple-system, sans-serif;
     }
 
-    /* NOTURNO TERMINAL / CRT VERDE & ÂMBAR (ESCURO) */
+    /* NOTURNO TERMINAL / CRT VERDE & ÂMBAAR (ESCURO) */
     html[data-theme="retro-crt"] {
       color-scheme: dark;
       --bg-primary: #0a0f0d;
@@ -464,7 +464,11 @@
       <div class="flex items-center gap-2">
         <span>▣ ORGANIZADOR_DE_ESTUDOS.EXE — Caderno de Controle de Edital e Questões</span>
       </div>
-      <div class="flex items-center gap-1.5 font-mono text-[10px]">
+      <div class="flex items-center gap-2 font-mono text-[10px]">
+        <span class="px-1.5 py-0.2 bg-black/25 border border-white/30 flex items-center gap-1" title="Pessoas estudando no site neste exato momento">
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="live-online-titlebar-num">1</span> online
+        </span>
         <span class="px-1.5 bg-black/20 border border-white/30">_</span>
         <span class="px-1.5 bg-black/20 border border-white/30">□</span>
       </div>
@@ -472,12 +476,18 @@
 
     <div class="max-w-[1520px] mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between gap-3 py-2.5">
       
-      <!-- Título & Status de Salvamento -->
-      <div class="flex items-baseline gap-3">
+      <!-- Título & Status de Salvamento + Pessoas Online Agora -->
+      <div class="flex items-center gap-3 flex-wrap">
         <h1 class="font-serif-title font-semibold text-xl sm:text-2xl tracking-tight">Organizador de estudos</h1>
-        <div class="hidden md:flex items-center gap-2 text-xs" style="color: var(--text-muted);">
-          <span>|</span>
-          <span id="save-indicator" class="font-mono text-[11px]">MEMÓRIA: OK</span>
+        <div class="flex items-center gap-2 text-xs" style="color: var(--text-muted);">
+          <span class="hidden sm:inline">|</span>
+          <span id="live-users-pill" class="card-inset px-2 py-0.5 font-mono text-[11px] flex items-center gap-1.5" title="Pessoas com o site aberto neste momento">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <b id="live-online-badge-num" style="color: var(--text-main);">1</b>
+            <span id="live-online-badge-label">estudando agora</span>
+          </span>
+          <span class="hidden md:inline">|</span>
+          <span id="save-indicator" class="hidden md:inline font-mono text-[11px]">MEMÓRIA: OK</span>
           <span id="autosave-pc-status" class="hidden"></span>
         </div>
       </div>
@@ -544,7 +554,7 @@
         2. Registro de Questões
       </button>
       <button type="button" onclick="switchTab('estatisticas')" id="tab-btn-estatisticas" class="tab-btn whitespace-nowrap transition-all">
-        3. Estatísticas
+        3. Gráficos & Estatísticas
       </button>
       <button type="button" onclick="switchTab('backup')" id="tab-btn-backup" class="tab-btn whitespace-nowrap transition-all">
         4. Memória & Backup
@@ -559,7 +569,79 @@
   <div class="max-w-[1520px] w-full mx-auto flex-1 flex flex-col lg:flex-row gap-5 p-4 sm:p-6">
 
     <!-- BARRA LATERAL (PAINEL COMPACTO LATERAL) -->
-    <aside class="w-full lg:w-[235px] shrink-0 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-col gap-3.5">
+    <aside class="w-full lg:w-[245px] shrink-0 flex flex-col sm:grid sm:grid-cols-2 lg:flex lg:flex-col gap-3.5">
+
+      <!-- WIDGET 0: CRONÔMETRO LIVRE & POMODORO -->
+      <div class="card-surface overflow-hidden flex flex-col">
+        <div class="retro-titlebar">
+          <span>⏱️ CRONOMETRO_ESTUDO.EXE</span>
+          <span id="timer-phase-badge" class="px-1 bg-black/25 text-[10px] font-mono">FOCO</span>
+        </div>
+        <div class="p-3.5 flex flex-col gap-2.5">
+          <!-- Seletor de Modo: Pomodoro 25/5 | 50/10 | Contador | Cronômetro Livre -->
+          <div class="grid grid-cols-2 gap-1 text-[10px] font-mono">
+            <button type="button" onclick="setStudyTimerMode('pomo25')" id="tmode-pomo25" class="retro-btn py-1 px-1.5 font-bold text-white" style="background-color: var(--accent-teal);">
+              🍅 Pomo 25/5
+            </button>
+            <button type="button" onclick="setStudyTimerMode('pomo50')" id="tmode-pomo50" class="retro-btn py-1 px-1.5 card-inset">
+              🍅 Pomo 50/10
+            </button>
+            <button type="button" onclick="setStudyTimerMode('stopwatch')" id="tmode-stopwatch" class="retro-btn py-1 px-1.5 card-inset">
+              ⏱️ Livre (00:00)
+            </button>
+            <button type="button" onclick="setStudyTimerMode('custom')" id="tmode-custom" class="retro-btn py-1 px-1.5 card-inset">
+              ⏳ Contador
+            </button>
+          </div>
+
+          <!-- Ajuste de minutos quando em modo Contador personalizado -->
+          <div id="timer-custom-row" class="hidden items-center justify-between gap-2 text-[11px] card-inset px-2 py-1">
+            <span>Minutos:</span>
+            <input type="number" id="timer-custom-mins" value="45" min="1" max="300" onchange="applyCustomCountdownMins()" class="input-surface w-16 px-1.5 py-0.5 text-center font-mono font-bold text-xs" />
+          </div>
+
+          <!-- Área de estudo atual -->
+          <select id="timer-area-select" class="input-surface w-full px-2 py-1 text-[11px] font-medium">
+            <option value="Clínica Médica">Área: Clínica Médica</option>
+            <option value="Cirurgia Geral">Área: Cirurgia Geral</option>
+            <option value="Ginecologia e Obstetrícia">Área: G.O.</option>
+            <option value="Pediatria">Área: Pediatria</option>
+            <option value="Medicina Preventiva">Área: Preventiva</option>
+          </select>
+
+          <!-- Visor Digital -->
+          <div class="card-inset py-2.5 px-3 flex flex-col items-center justify-center">
+            <div id="timer-display" class="font-mono text-2xl sm:text-3xl font-bold tracking-wider">25:00</div>
+            <div class="w-full h-1.5 bg-black/10 dark:bg-white/10 mt-1.5 overflow-hidden">
+              <div id="timer-progress-bar" class="h-full transition-all" style="width: 0%; background-color: var(--accent-teal);"></div>
+            </div>
+          </div>
+
+          <!-- Botões de Controle -->
+          <div class="grid grid-cols-3 gap-1.5 text-xs font-mono">
+            <button type="button" onclick="toggleStudyTimer()" id="timer-start-btn" class="retro-btn py-1.5 px-2 font-bold text-white col-span-2" style="background-color: var(--accent-teal);">
+              ▶ Iniciar
+            </button>
+            <button type="button" onclick="resetStudyTimer()" class="retro-btn py-1.5 px-2 card-inset font-semibold" title="Reiniciar visor">
+              ↺ Reset
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between gap-1 pt-1 border-t text-[11px] font-mono" style="border-color: var(--border-color);">
+            <button type="button" onclick="finishAndLogCurrentTimer()" id="timer-save-session-btn" class="underline font-semibold hover:opacity-80" style="color: var(--accent-teal);" title="Salvar no gráfico os minutos já corridos no visor">
+              ✓ Salvar tempo
+            </button>
+            <button type="button" onclick="openManualTimeModal()" class="underline hover:opacity-80" style="color: var(--text-muted);" title="Lançar horas estudadas manualmente">
+              + Tempo manual
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] font-mono pt-0.5" style="color: var(--text-muted);">
+            <span>Hoje: <b id="widget-hours-today" style="color: var(--text-main);">0h 00m</b></span>
+            <span>🍅 Ciclos: <b id="widget-pomo-cycles" style="color: var(--text-main);">0</b></span>
+          </div>
+        </div>
+      </div>
       
       <!-- WIDGET 1: ANEL DA META DIÁRIA + OFENSIVA -->
       <div class="card-surface overflow-hidden flex flex-col">
@@ -686,7 +768,7 @@
     <main class="flex-1 min-w-0 flex flex-col gap-5">
 
       <!-- BARRA DE MÉTRICAS GLOBAIS NO TOPO -->
-      <div class="card-surface px-5 py-3.5 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+      <div class="card-surface px-5 py-3.5 grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
         <div>
           <div style="color: var(--text-muted);">Matérias concluídas</div>
           <div id="top-materias-feitas" class="text-base sm:text-lg font-bold font-mono mt-0.5">0 / 414 (0%)</div>
@@ -698,6 +780,10 @@
         <div>
           <div style="color: var(--text-muted);">Taxa de acerto</div>
           <div id="top-total-acertos" class="text-base sm:text-lg font-bold font-mono mt-0.5">0 (0%)</div>
+        </div>
+        <div>
+          <div style="color: var(--text-muted);">Tempo de estudo</div>
+          <div id="top-horas-estudo" class="text-base sm:text-lg font-bold font-mono mt-0.5">0h 00m</div>
         </div>
         <div>
           <div style="color: var(--text-muted);">Revisões pendentes</div>
@@ -843,6 +929,75 @@
       <!-- ABA 3: ESTATÍSTICAS DO EDITAL & PARETO                     -->
       <!-- ========================================================== -->
       <section id="tab-estatisticas" class="hidden flex-col gap-4">
+
+        <!-- BARRA DE CONTROLE DOS GRÁFICOS DIÁRIOS -->
+        <div class="card-surface overflow-hidden flex flex-col">
+          <div class="retro-titlebar">
+            <span>📈 GRAFICOS_DIARIOS_EVOLUCAO.EXE — Horas Estudadas, Questões por Dia e Ritmo</span>
+            <span id="chart-range-badge">14 DIAS</span>
+          </div>
+          <div class="p-4 flex flex-col gap-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3" style="border-color: var(--border-color);">
+              <div class="flex flex-wrap items-center gap-4 text-xs font-mono">
+                <div>⏱️ Hoje: <b id="stat-hours-today">0h 00m</b></div>
+                <div>📅 Últimos 7d: <b id="stat-hours-7d">0h 00m</b></div>
+                <div>🏆 Total acumulado: <b id="stat-hours-total">0h 00m</b></div>
+                <div>⚡ Ritmo médio: <b id="stat-q-per-hour">-- q/h</b></div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <select id="chart-days-select" onchange="changeChartsWindow(this.value)" class="input-surface px-2.5 py-1 text-xs font-semibold">
+                  <option value="7">Período: Últimos 7 dias</option>
+                  <option value="14" selected>Período: Últimos 14 dias</option>
+                  <option value="30">Período: Últimos 30 dias</option>
+                </select>
+                <button type="button" onclick="openManualTimeModal()" class="retro-btn px-2.5 py-1 text-xs font-semibold card-inset">
+                  + Lançar Horas
+                </button>
+              </div>
+            </div>
+
+            <!-- GRÁFICO 1 E GRÁFICO 2 LADO A LADO -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <!-- GRÁFICO 1: HORAS ESTUDADAS POR DIA -->
+              <div class="card-inset p-4 flex flex-col gap-2.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold">⏱️ Horas Estudadas por Dia</span>
+                  <span id="chart-hours-goal-label" class="font-mono text-[11px]" style="color: var(--text-muted);">Meta: 3h/dia</span>
+                </div>
+                <div id="chart-daily-hours" class="h-44 flex items-end gap-1.5 pt-6 pb-1 px-1 border-b relative" style="border-color: var(--border-color);"></div>
+                <div class="flex items-center justify-between text-[11px]" style="color: var(--text-muted);">
+                  <span>■ Verde: bateu a meta de horas</span>
+                  <span>■ Azul/Destaque: estudou no dia</span>
+                </div>
+              </div>
+
+              <!-- GRÁFICO 2: QUESTÕES FEITAS POR DIA + % ACERTO -->
+              <div class="card-inset p-4 flex flex-col gap-2.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold">📝 Questões Feitas por Dia</span>
+                  <span id="chart-q-goal-label" class="font-mono text-[11px]" style="color: var(--text-muted);">Meta: 40q/dia</span>
+                </div>
+                <div id="chart-daily-questions" class="h-44 flex items-end gap-1.5 pt-6 pb-1 px-1 border-b relative" style="border-color: var(--border-color);"></div>
+                <div class="flex items-center justify-between text-[11px]" style="color: var(--text-muted);">
+                  <span>■ Verde: bateu a meta diária</span>
+                  <span>Passe o mouse/toque para ver % de acerto do dia</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- GRÁFICO 3: DISTRIBUIÇÃO DE HORAS ESTUDADAS VS. DESEMPENHO POR GRANDE ÁREA -->
+            <div class="card-inset p-4 flex flex-col gap-3">
+              <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span class="font-bold">🧭 Equilíbrio de Estudo por Grande Área (Horas Dedicadas vs. Questões & Acerto)</span>
+                <button type="button" onclick="openStudyLogsHistoryModal()" class="underline text-[11px] font-mono" style="color: var(--accent-teal);">
+                  Ver / Editar histórico de sessões de tempo
+                </button>
+              </div>
+              <div id="stats-time-vs-area" class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 text-xs"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div class="card-surface overflow-hidden flex flex-col">
             <div class="retro-titlebar">
@@ -1246,6 +1401,10 @@
             <input type="number" id="mg-daily" min="5" max="500" class="input-surface w-full px-3 py-2 rounded-xl font-bold text-sm" />
           </div>
           <div>
+            <label class="block font-semibold mb-1">Meta Diária de Horas Líquidas (Padrão: 3h)</label>
+            <input type="number" id="mg-hours" min="0.5" max="16" step="0.5" class="input-surface w-full px-3 py-2 rounded-xl font-bold text-sm" />
+          </div>
+          <div>
             <label class="block font-semibold mb-1">Meta Anual de Questões (Padrão: 15.000)</label>
             <input type="number" id="mg-annual" min="1000" max="50000" step="500" class="input-surface w-full px-3 py-2 rounded-xl font-bold text-sm" />
           </div>
@@ -1253,6 +1412,82 @@
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeGoalModal()" class="px-3 py-1.5 rounded-xl text-xs card-inset">Cancelar</button>
           <button type="button" onclick="saveGoalsConfig()" class="px-4 py-1.5 rounded-xl text-xs font-bold text-white" style="background-color: var(--accent-teal);">Salvar Metas</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- MODAL 4B: LANÇAR TEMPO DE ESTUDO MANUAL & HISTÓRICO DE TEMPO           -->
+  <!-- ====================================================================== -->
+  <div id="modal-manual-time" class="modal-backdrop fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center">
+    <div class="card-surface modal-window rounded-2xl max-w-md w-full shadow-2xl">
+      <div class="retro-titlebar shrink-0">
+        <span>⏱️ REGISTRAR_TEMPO_ESTUDO.EXE</span>
+        <button type="button" onclick="closeManualTimeModal()" class="px-1.5 bg-black/30 text-white font-mono">✕</button>
+      </div>
+      <div class="modal-scroll-body p-5 flex flex-col gap-4">
+        <div class="flex items-center justify-between border-b pb-2.5" style="border-color: var(--border-color);">
+          <h3 class="font-bold text-sm">⏱️ Adicionar Tempo de Estudo</h3>
+          <button type="button" onclick="closeManualTimeModal()" class="text-xs px-2 py-1 rounded card-inset">✕</button>
+        </div>
+        <div class="flex flex-col gap-3 text-xs">
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block font-semibold mb-1">Data</label>
+              <input type="date" id="mmt-date" class="input-surface w-full px-3 py-2" />
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Grande Área</label>
+              <select id="mmt-area" class="input-surface w-full px-3 py-2">
+                <option value="Clínica Médica">Clínica Médica</option>
+                <option value="Cirurgia Geral">Cirurgia Geral</option>
+                <option value="Ginecologia e Obstetrícia">Ginecologia e Obstetrícia</option>
+                <option value="Pediatria">Pediatria</option>
+                <option value="Medicina Preventiva">Medicina Preventiva</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block font-semibold mb-1">Horas</label>
+              <input type="number" id="mmt-hours" min="0" max="18" value="1" class="input-surface w-full px-3 py-2 font-mono font-bold text-sm" />
+            </div>
+            <div>
+              <label class="block font-semibold mb-1">Minutos</label>
+              <input type="number" id="mmt-mins" min="0" max="59" value="0" class="input-surface w-full px-3 py-2 font-mono font-bold text-sm" />
+            </div>
+          </div>
+          <div>
+            <label class="block font-semibold mb-1">Descrição Opcional (ex: Aula + Questões, Simulado, Revisão)</label>
+            <input type="text" id="mmt-note" placeholder="Ex: Bloco de questões + Anki" class="input-surface w-full px-3 py-2" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t" style="border-color: var(--border-color);">
+          <button type="button" onclick="closeManualTimeModal()" class="px-3 py-1.5 text-xs card-inset">Cancelar</button>
+          <button type="button" onclick="saveManualStudyTime()" class="retro-btn px-4 py-1.5 text-xs font-bold text-white" style="background-color: var(--accent-teal);">
+            ✓ Salvar Tempo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4C: HISTÓRICO DE SESSÕES DE ESTUDO -->
+  <div id="modal-study-logs" class="modal-backdrop fixed inset-0 z-50 bg-black/50 backdrop-blur-xs hidden items-center justify-center">
+    <div class="card-surface modal-window rounded-2xl max-w-lg w-full shadow-2xl">
+      <div class="retro-titlebar shrink-0">
+        <span>🗂️ HISTORICO_HORAS.LOG</span>
+        <button type="button" onclick="closeStudyLogsHistoryModal()" class="px-1.5 bg-black/30 text-white font-mono">✕</button>
+      </div>
+      <div class="modal-scroll-body p-5 flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b pb-2" style="border-color: var(--border-color);">
+          <h3 class="font-bold text-sm">Histórico de Sessões de Estudo (Cronômetro / Pomodoro)</h3>
+          <button type="button" onclick="closeStudyLogsHistoryModal()" class="text-xs px-2 py-1 card-inset">✕</button>
+        </div>
+        <div id="msl-list" class="flex flex-col gap-2 text-xs"></div>
+        <div class="flex justify-end pt-2 border-t" style="border-color: var(--border-color);">
+          <button type="button" onclick="closeStudyLogsHistoryModal()" class="px-4 py-1.5 text-xs font-semibold card-inset">Fechar</button>
         </div>
       </div>
     </div>
@@ -2235,10 +2470,13 @@
         spacedRepMode: "adaptive",
         cloudAccountId: null,
         dailyGoal: 40,
+        dailyHoursGoal: 3,
         annualGoal: 15000,
         autoDownloadOnSave: false,
         scheduleTopics: buildCleanScheduleTopics(),
         qlogs: [],
+        studyLogs: [],
+        pomoCycles: 0,
         parentLinks: {},
         topicMacroMap: {},
         updatedAt: 0
@@ -2268,9 +2506,12 @@
       }
       if (!parsed.spacedRepMode) parsed.spacedRepMode = "adaptive";
       if (!Array.isArray(parsed.qlogs)) parsed.qlogs = [];
+      if (!Array.isArray(parsed.studyLogs)) parsed.studyLogs = [];
+      if (typeof parsed.pomoCycles !== "number") parsed.pomoCycles = 0;
       if (!parsed.parentLinks) parsed.parentLinks = {};
       if (!parsed.topicMacroMap) parsed.topicMacroMap = {};
       if (!parsed.dailyGoal) parsed.dailyGoal = 40;
+      if (!parsed.dailyHoursGoal) parsed.dailyHoursGoal = 3;
       if (!parsed.annualGoal) parsed.annualGoal = 15000;
       return parsed;
     }
@@ -2756,6 +2997,352 @@
       showToast("Todos os dados foram zerados.");
     }
 
+    // =========================================================================
+    // 4B. CRONÔMETRO LIVRE, CONTADOR REGRESSIVO E POMODORO (COM WEB AUDIO)
+    // =========================================================================
+    let studyTimerState = {
+      mode: "pomo25", // 'pomo25' | 'pomo50' | 'stopwatch' | 'custom'
+      phase: "focus", // 'focus' | 'break'
+      running: false,
+      targetSeconds: 25 * 60,
+      elapsedSeconds: 0,
+      lastTickTimestamp: null,
+      intervalId: null
+    };
+    let chartDaysWindow = 14;
+
+    function playTimerBeep() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.14, ctx.currentTime + idx * 0.14);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.14 + 0.13);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + idx * 0.14);
+          osc.stop(ctx.currentTime + idx * 0.14 + 0.13);
+        });
+      } catch (e) {}
+    }
+
+    function formatMinutesToHoursText(totalMins) {
+      const mins = Math.max(0, Math.round(totalMins || 0));
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      return `${h}h ${String(m).padStart(2, "0")}m`;
+    }
+
+    function formatSecondsDigital(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      const hrs = Math.floor(s / 3600);
+      const mins = Math.floor((s % 3600) / 60);
+      const rem = s % 60;
+      if (hrs > 0) {
+        return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(rem).padStart(2, "0")}`;
+      }
+      return `${String(mins).padStart(2, "0")}:${String(rem).padStart(2, "0")}`;
+    }
+
+    function setStudyTimerMode(mode) {
+      if (studyTimerState.running) {
+        pauseStudyTimer();
+      }
+      studyTimerState.mode = mode;
+      studyTimerState.phase = "focus";
+      studyTimerState.elapsedSeconds = 0;
+
+      const customRow = document.getElementById("timer-custom-row");
+      if (customRow) {
+        if (mode === "custom") {
+          customRow.classList.remove("hidden");
+          customRow.classList.add("flex");
+        } else {
+          customRow.classList.add("hidden");
+          customRow.classList.remove("flex");
+        }
+      }
+
+      if (mode === "pomo25") studyTimerState.targetSeconds = 25 * 60;
+      else if (mode === "pomo50") studyTimerState.targetSeconds = 50 * 60;
+      else if (mode === "custom") {
+        const mins = Math.max(1, parseInt(document.getElementById("timer-custom-mins")?.value) || 45);
+        studyTimerState.targetSeconds = mins * 60;
+      } else {
+        studyTimerState.targetSeconds = 0; // Cronômetro progressivo
+      }
+
+      ["pomo25", "pomo50", "stopwatch", "custom"].forEach(m => {
+        const btn = document.getElementById(`tmode-${m}`);
+        if (!btn) return;
+        if (m === mode) {
+          btn.style.backgroundColor = "var(--accent-teal)";
+          btn.classList.add("text-white", "font-bold");
+          btn.classList.remove("card-inset");
+        } else {
+          btn.style.backgroundColor = "";
+          btn.classList.remove("text-white", "font-bold");
+          btn.classList.add("card-inset");
+        }
+      });
+
+      updateStudyTimerDisplay();
+    }
+
+    function applyCustomCountdownMins() {
+      if (studyTimerState.mode !== "custom") return;
+      const mins = Math.max(1, parseInt(document.getElementById("timer-custom-mins")?.value) || 45);
+      studyTimerState.targetSeconds = mins * 60;
+      studyTimerState.elapsedSeconds = 0;
+      updateStudyTimerDisplay();
+    }
+
+    function updateStudyTimerDisplay() {
+      const disp = document.getElementById("timer-display");
+      const bar = document.getElementById("timer-progress-bar");
+      const badge = document.getElementById("timer-phase-badge");
+      const btn = document.getElementById("timer-start-btn");
+
+      let shownSeconds = 0;
+      let pct = 0;
+
+      if (studyTimerState.mode === "stopwatch") {
+        shownSeconds = studyTimerState.elapsedSeconds;
+        pct = Math.min(100, ((shownSeconds % 3600) / 3600) * 100);
+        if (badge) badge.textContent = "LIVRE";
+      } else {
+        shownSeconds = Math.max(0, studyTimerState.targetSeconds - studyTimerState.elapsedSeconds);
+        pct = studyTimerState.targetSeconds > 0
+          ? Math.min(100, (studyTimerState.elapsedSeconds / studyTimerState.targetSeconds) * 100)
+          : 0;
+        if (badge) {
+          badge.textContent = studyTimerState.phase === "break" ? "PAUSA ☕" : "FOCO 🎯";
+        }
+      }
+
+      const formatted = formatSecondsDigital(shownSeconds);
+      if (disp) disp.textContent = formatted;
+      if (bar) bar.style.width = `${pct}%`;
+      if (btn) {
+        btn.textContent = studyTimerState.running ? "⏸ Pausar" : (studyTimerState.elapsedSeconds > 0 ? "▶ Continuar" : "▶ Iniciar");
+      }
+
+      if (studyTimerState.running) {
+        document.title = `(${formatted}) Organizador de estudos`;
+      } else {
+        document.title = "Organizador de estudos";
+      }
+    }
+
+    function toggleStudyTimer() {
+      if (studyTimerState.running) {
+        pauseStudyTimer();
+      } else {
+        startStudyTimer();
+      }
+    }
+
+    function startStudyTimer() {
+      if (studyTimerState.running) return;
+      studyTimerState.running = true;
+      studyTimerState.lastTickTimestamp = Date.now();
+      studyTimerState.intervalId = setInterval(tickStudyTimer, 500);
+      updateStudyTimerDisplay();
+    }
+
+    function pauseStudyTimer() {
+      studyTimerState.running = false;
+      if (studyTimerState.intervalId) {
+        clearInterval(studyTimerState.intervalId);
+        studyTimerState.intervalId = null;
+      }
+      studyTimerState.lastTickTimestamp = null;
+      updateStudyTimerDisplay();
+    }
+
+    function resetStudyTimer() {
+      pauseStudyTimer();
+      studyTimerState.phase = "focus";
+      studyTimerState.elapsedSeconds = 0;
+      if (studyTimerState.mode === "pomo25") studyTimerState.targetSeconds = 25 * 60;
+      else if (studyTimerState.mode === "pomo50") studyTimerState.targetSeconds = 50 * 60;
+      else if (studyTimerState.mode === "custom") {
+        const mins = Math.max(1, parseInt(document.getElementById("timer-custom-mins")?.value) || 45);
+        studyTimerState.targetSeconds = mins * 60;
+      }
+      updateStudyTimerDisplay();
+    }
+
+    function tickStudyTimer() {
+      if (!studyTimerState.running || !studyTimerState.lastTickTimestamp) return;
+      const now = Date.now();
+      const deltaSec = Math.floor((now - studyTimerState.lastTickTimestamp) / 1000);
+      if (deltaSec < 1) return;
+
+      studyTimerState.lastTickTimestamp += deltaSec * 1000;
+      studyTimerState.elapsedSeconds += deltaSec;
+
+      if (studyTimerState.mode !== "stopwatch" && studyTimerState.elapsedSeconds >= studyTimerState.targetSeconds) {
+        handleCountdownComplete();
+        return;
+      }
+      updateStudyTimerDisplay();
+    }
+
+    function recordStudyMinutes(minutes, modeLabel, customArea = null, customDate = null, customNote = "") {
+      const mins = Math.round(minutes);
+      if (mins <= 0) return;
+      const macro = customArea || document.getElementById("timer-area-select")?.value || "Clínica Médica";
+      const date = customDate || getTodayISO();
+
+      if (!Array.isArray(appState.studyLogs)) appState.studyLogs = [];
+      appState.studyLogs.push({
+        id: "st_" + Date.now(),
+        date,
+        macro,
+        minutes: mins,
+        mode: modeLabel || studyTimerState.mode,
+        note: customNote || ""
+      });
+      saveAppState(true);
+      refreshAllViews();
+    }
+
+    function handleCountdownComplete() {
+      pauseStudyTimer();
+      playTimerBeep();
+
+      if (studyTimerState.phase === "focus") {
+        const focusMins = Math.round(studyTimerState.targetSeconds / 60);
+        if (studyTimerState.mode === "pomo25" || studyTimerState.mode === "pomo50") {
+          appState.pomoCycles = (appState.pomoCycles || 0) + 1;
+        }
+        recordStudyMinutes(focusMins, studyTimerState.mode, null, null, "Ciclo concluído");
+
+        if (studyTimerState.mode === "pomo25" || studyTimerState.mode === "pomo50") {
+          const breakMins = studyTimerState.mode === "pomo25" ? 5 : 10;
+          studyTimerState.phase = "break";
+          studyTimerState.targetSeconds = breakMins * 60;
+          studyTimerState.elapsedSeconds = 0;
+          updateStudyTimerDisplay();
+          showToast(`🍅 Foco de ${focusMins} min salvo! Hora de ${breakMins} min de pausa.`);
+        } else {
+          studyTimerState.elapsedSeconds = 0;
+          updateStudyTimerDisplay();
+          showToast(`⏳ Contador de ${focusMins} min concluído e salvo nos gráficos!`);
+        }
+      } else {
+        // Fim da pausa do Pomodoro -> volta para o foco
+        studyTimerState.phase = "focus";
+        studyTimerState.targetSeconds = studyTimerState.mode === "pomo25" ? 25 * 60 : 50 * 60;
+        studyTimerState.elapsedSeconds = 0;
+        updateStudyTimerDisplay();
+        showToast("☕ Pausa finalizada! Pronto para o próximo bloco de foco.");
+      }
+    }
+
+    function finishAndLogCurrentTimer() {
+      if (studyTimerState.phase === "break") {
+        resetStudyTimer();
+        showToast("Pausa encerrada. Voltando ao modo Foco.");
+        return;
+      }
+      const mins = Math.floor(studyTimerState.elapsedSeconds / 60);
+      if (mins < 1) {
+        showToast("Estude pelo menos 1 minuto no visor antes de salvar (ou use '+ Tempo manual').", "error");
+        return;
+      }
+      pauseStudyTimer();
+      recordStudyMinutes(mins, studyTimerState.mode, null, null, "Sessão salva pelo visor");
+      studyTimerState.elapsedSeconds = 0;
+      updateStudyTimerDisplay();
+      showToast(`✓ ${mins} min adicionados às suas estatísticas de hoje!`);
+    }
+
+    function openManualTimeModal() {
+      document.getElementById("mmt-date").value = getTodayISO();
+      const currentTimerArea = document.getElementById("timer-area-select")?.value || "Clínica Médica";
+      document.getElementById("mmt-area").value = currentTimerArea;
+      document.getElementById("mmt-hours").value = "1";
+      document.getElementById("mmt-mins").value = "0";
+      document.getElementById("mmt-note").value = "";
+      const m = document.getElementById("modal-manual-time");
+      if (m) { m.classList.remove("hidden"); m.classList.add("flex"); }
+    }
+
+    function closeManualTimeModal() {
+      const m = document.getElementById("modal-manual-time");
+      if (m) { m.classList.add("hidden"); m.classList.remove("flex"); }
+    }
+
+    function saveManualStudyTime() {
+      const date = document.getElementById("mmt-date").value || getTodayISO();
+      const area = document.getElementById("mmt-area").value || "Clínica Médica";
+      const hrs = parseInt(document.getElementById("mmt-hours").value) || 0;
+      const mins = parseInt(document.getElementById("mmt-mins").value) || 0;
+      const note = document.getElementById("mmt-note").value.trim();
+      const totalMinutes = hrs * 60 + mins;
+
+      if (totalMinutes <= 0) {
+        showToast("Informe uma quantidade válida de horas ou minutos.", "error");
+        return;
+      }
+
+      recordStudyMinutes(totalMinutes, "manual", area, date, note || "Registro manual");
+      closeManualTimeModal();
+      showToast(`✓ ${formatMinutesToHoursText(totalMinutes)} registrados em ${area}!`);
+    }
+
+    function openStudyLogsHistoryModal() {
+      const m = document.getElementById("modal-study-logs");
+      const listEl = document.getElementById("msl-list");
+      if (!m || !listEl) return;
+
+      const logs = [...(appState.studyLogs || [])].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+      if (logs.length === 0) {
+        listEl.innerHTML = `<div class="p-4 text-center" style="color: var(--text-muted);">Nenhuma sessão de tempo salva ainda. Use o cronômetro na barra lateral ou clique em '+ Lançar Horas'.</div>`;
+      } else {
+        listEl.innerHTML = logs.map(l => `
+          <div class="card-inset p-2.5 flex items-center justify-between gap-2">
+            <div>
+              <div class="font-bold">${l.macro} — <span class="font-mono">${formatMinutesToHoursText(l.minutes)}</span></div>
+              <div class="text-[11px] font-mono" style="color: var(--text-muted);">${formatDateBR(l.date)} ${l.note ? `• ${l.note}` : ""}</div>
+            </div>
+            <button type="button" onclick="deleteStudyLog('${l.id}')" class="px-2 py-1 text-red-600 font-bold hover:underline">Excluir</button>
+          </div>
+        `).join("");
+      }
+
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+    }
+
+    function closeStudyLogsHistoryModal() {
+      const m = document.getElementById("modal-study-logs");
+      if (m) { m.classList.add("hidden"); m.classList.remove("flex"); }
+    }
+
+    function deleteStudyLog(logId) {
+      appState.studyLogs = (appState.studyLogs || []).filter(l => l.id !== logId);
+      saveAppState(true);
+      refreshAllViews();
+      openStudyLogsHistoryModal();
+      showToast("Sessão de tempo removida.");
+    }
+
+    function changeChartsWindow(daysVal) {
+      chartDaysWindow = parseInt(daysVal) || 14;
+      const badge = document.getElementById("chart-range-badge");
+      if (badge) badge.textContent = `${chartDaysWindow} DIAS`;
+      refreshAllViews();
+    }
+
     function resetOnlyQuestions() {
       appState.qlogs = [];
       saveAppState(true);
@@ -2859,6 +3446,28 @@
 
       let totalFeitasGlobal = 0;
       let totalCertasGlobal = 0;
+      const dailyCertasMap = {};
+      const dailyStudyMinutesMap = {};
+      const areaStudyMinutesMap = {
+        "Clínica Médica": 0,
+        "Cirurgia Geral": 0,
+        "Ginecologia e Obstetrícia": 0,
+        "Pediatria": 0,
+        "Medicina Preventiva": 0
+      };
+      let totalStudyMinutesGlobal = 0;
+
+      for (const st of (appState.studyLogs || [])) {
+        const mins = parseInt(st.minutes) || 0;
+        if (mins <= 0) continue;
+        const dISO = st.date || getTodayISO();
+        const area = st.macro || "Clínica Médica";
+        totalStudyMinutesGlobal += mins;
+        dailyStudyMinutesMap[dISO] = (dailyStudyMinutesMap[dISO] || 0) + mins;
+        if (typeof areaStudyMinutesMap[area] === "number") {
+          areaStudyMinutesMap[area] += mins;
+        }
+      }
 
       function ensureNode(key, displayName, macro, isSub, parentKey = null) {
         if (!nodes[key]) {
@@ -2892,6 +3501,7 @@
         totalFeitasGlobal += feitas;
         totalCertasGlobal += certas;
         dailyCountMap[dateISO] = (dailyCountMap[dateISO] || 0) + feitas;
+        dailyCertasMap[dateISO] = (dailyCertasMap[dateISO] || 0) + certas;
 
         if (areaStatsAll[macro]) {
           areaStatsAll[macro].feitas += feitas;
@@ -3008,6 +3618,10 @@
       return {
         list,
         dailyCountMap,
+        dailyCertasMap,
+        dailyStudyMinutesMap,
+        areaStudyMinutesMap,
+        totalStudyMinutesGlobal,
         areaStatsAll,
         areaStats30d,
         totalFeitasGlobal,
@@ -3028,15 +3642,19 @@
       const doneTopics = appState.scheduleTopics.filter(t => t.done).length;
       const pctTopics = totalTopics > 0 ? Math.round((doneTopics / totalTopics) * 100) : 0;
       const pctGlobalQ = agg.totalFeitasGlobal > 0 ? Math.round((agg.totalCertasGlobal / agg.totalFeitasGlobal) * 100) : 0;
+      const todayISO = getTodayISO();
+      const minsToday = agg.dailyStudyMinutesMap[todayISO] || 0;
 
       const elMat = document.getElementById("top-materias-feitas");
       const elFeitas = document.getElementById("top-total-feitas");
       const elAcertos = document.getElementById("top-total-acertos");
+      const elHoras = document.getElementById("top-horas-estudo");
       const elAtrasados = document.getElementById("top-temas-atrasados");
 
       if (elMat) elMat.textContent = `${doneTopics} / ${totalTopics} (${pctTopics}%)`;
       if (elFeitas) elFeitas.textContent = `${agg.totalFeitasGlobal}`;
       if (elAcertos) elAcertos.textContent = `${agg.totalCertasGlobal} (${pctGlobalQ}%)`;
+      if (elHoras) elHoras.textContent = `${formatMinutesToHoursText(minsToday)} (${formatMinutesToHoursText(agg.totalStudyMinutesGlobal)} tot)`;
       if (elAtrasados) elAtrasados.textContent = `${agg.overdueCount}`;
     }
 
@@ -3158,6 +3776,13 @@
       const pctAnnual = Math.min(100, ((agg.totalFeitasGlobal / annualGoal) * 100).toFixed(1));
       document.getElementById("odo-questions-text").textContent = `${agg.totalFeitasGlobal} / ${annualGoal}`;
       document.getElementById("odo-questions-bar").style.width = `${pctAnnual}%`;
+
+      // Atualiza horas de hoje e ciclos Pomodoro no Widget 0
+      const minsToday = agg.dailyStudyMinutesMap[todayISO] || 0;
+      const elHoursToday = document.getElementById("widget-hours-today");
+      const elPomoCycles = document.getElementById("widget-pomo-cycles");
+      if (elHoursToday) elHoursToday.textContent = formatMinutesToHoursText(minsToday);
+      if (elPomoCycles) elPomoCycles.textContent = appState.pomoCycles || 0;
     }
 
     function renderQuestionsTable(agg) {
@@ -3209,6 +3834,130 @@
 
     function renderStatisticsView(agg) {
       const areasOrder = ["Clínica Médica", "Cirurgia Geral", "Ginecologia e Obstetrícia", "Pediatria", "Medicina Preventiva"];
+      const todayISO = getTodayISO();
+      const hoursGoal = appState.dailyHoursGoal || 3;
+      const qGoal = appState.dailyGoal || 40;
+
+      // 1. Métricas de Resumo de Horas e Ritmo
+      let mins7d = 0;
+      for (let i = 0; i < 7; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const iso = d.toISOString().split("T")[0];
+        mins7d += agg.dailyStudyMinutesMap[iso] || 0;
+      }
+      const minsToday = agg.dailyStudyMinutesMap[todayISO] || 0;
+      const totalHoursDec = agg.totalStudyMinutesGlobal / 60;
+      const qPerHour = totalHoursDec >= 0.25 ? Math.round(agg.totalFeitasGlobal / totalHoursDec) : null;
+
+      const elHDay = document.getElementById("stat-hours-today");
+      const elH7d = document.getElementById("stat-hours-7d");
+      const elHTot = document.getElementById("stat-hours-total");
+      const elQph = document.getElementById("stat-q-per-hour");
+      if (elHDay) elHDay.textContent = formatMinutesToHoursText(minsToday);
+      if (elH7d) elH7d.textContent = formatMinutesToHoursText(mins7d);
+      if (elHTot) elHTot.textContent = formatMinutesToHoursText(agg.totalStudyMinutesGlobal);
+      if (elQph) elQph.textContent = qPerHour !== null ? `${qPerHour} q/h` : "-- q/h";
+
+      const lblHGoal = document.getElementById("chart-hours-goal-label");
+      const lblQGoal = document.getElementById("chart-q-goal-label");
+      if (lblHGoal) lblHGoal.textContent = `Meta: ${hoursGoal}h/dia`;
+      if (lblQGoal) lblQGoal.textContent = `Meta: ${qGoal}q/dia`;
+
+      // 2. Construção da Série Diária (7, 14 ou 30 dias)
+      const daysSeries = [];
+      for (let i = chartDaysWindow - 1; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const iso = d.toISOString().split("T")[0];
+        const [, mm, dd] = iso.split("-");
+        daysSeries.push({
+          iso,
+          shortLabel: `${dd}/${mm}`,
+          mins: agg.dailyStudyMinutesMap[iso] || 0,
+          qFeitas: agg.dailyCountMap[iso] || 0,
+          qCertas: agg.dailyCertasMap[iso] || 0
+        });
+      }
+
+      // GRÁFICO 1: Horas Estudadas por Dia
+      const chartHoursEl = document.getElementById("chart-daily-hours");
+      if (chartHoursEl) {
+        const goalMins = hoursGoal * 60;
+        const maxMins = Math.max(goalMins * 1.25, ...daysSeries.map(d => d.mins), 60);
+        const goalLineBottomPct = Math.min(95, Math.round((goalMins / maxMins) * 100));
+
+        let barsHtml = `
+          <div style="position:absolute; left:0; right:0; bottom:${goalLineBottomPct}%; border-top:1px dashed var(--accent-terracotta); pointer-events:none; opacity:0.75;" title="Meta diária: ${hoursGoal}h"></div>
+        `;
+
+        barsHtml += daysSeries.map(d => {
+          const hPct = d.mins > 0 ? Math.max(6, Math.round((d.mins / maxMins) * 100)) : 2;
+          const hitGoal = d.mins >= goalMins;
+          const barColor = hitGoal ? "#16a34a" : (d.mins > 0 ? "var(--accent-teal)" : "var(--border-color)");
+          const hrsLabel = d.mins >= 60 ? `${(d.mins / 60).toFixed(1)}h` : (d.mins > 0 ? `${d.mins}m` : "");
+          return `
+            <div class="flex-1 flex flex-col items-center justify-end h-full min-w-0 group" title="${formatDateBR(d.iso)}: ${formatMinutesToHoursText(d.mins)}">
+              <span class="text-[9px] font-mono mb-0.5 truncate">${hrsLabel}</span>
+              <div class="w-full max-w-[26px] transition-all" style="height:${hPct}%; background:${barColor};"></div>
+              <span class="text-[9px] font-mono mt-1 truncate" style="color: var(--text-muted);">${chartDaysWindow <= 14 ? d.shortLabel : d.shortLabel.slice(0, 2)}</span>
+            </div>
+          `;
+        }).join("");
+
+        chartHoursEl.innerHTML = barsHtml;
+      }
+
+      // GRÁFICO 2: Questões Feitas por Dia
+      const chartQEl = document.getElementById("chart-daily-questions");
+      if (chartQEl) {
+        const maxQ = Math.max(qGoal * 1.25, ...daysSeries.map(d => d.qFeitas), 20);
+        const qGoalBottomPct = Math.min(95, Math.round((qGoal / maxQ) * 100));
+
+        let qBarsHtml = `
+          <div style="position:absolute; left:0; right:0; bottom:${qGoalBottomPct}%; border-top:1px dashed var(--accent-terracotta); pointer-events:none; opacity:0.75;" title="Meta diária: ${qGoal} questões"></div>
+        `;
+
+        qBarsHtml += daysSeries.map(d => {
+          const hPct = d.qFeitas > 0 ? Math.max(6, Math.round((d.qFeitas / maxQ) * 100)) : 2;
+          const hitGoal = d.qFeitas >= qGoal;
+          const pctAcc = d.qFeitas > 0 ? Math.round((d.qCertas / d.qFeitas) * 100) : 0;
+          const barColor = hitGoal ? "#16a34a" : (d.qFeitas > 0 ? "var(--accent-teal)" : "var(--border-color)");
+          return `
+            <div class="flex-1 flex flex-col items-center justify-end h-full min-w-0" title="${formatDateBR(d.iso)}: ${d.qFeitas} questões (${d.qCertas} acertos — ${pctAcc}%)">
+              <span class="text-[9px] font-mono mb-0.5 truncate">${d.qFeitas > 0 ? d.qFeitas : ""}</span>
+              <div class="w-full max-w-[26px] transition-all" style="height:${hPct}%; background:${barColor};"></div>
+              <span class="text-[9px] font-mono mt-1 truncate" style="color: var(--text-muted);">${chartDaysWindow <= 14 ? d.shortLabel : d.shortLabel.slice(0, 2)}</span>
+            </div>
+          `;
+        }).join("");
+
+        chartQEl.innerHTML = qBarsHtml;
+      }
+
+      // GRÁFICO 3: Equilíbrio de Horas vs. Questões por Grande Área
+      const timeVsAreaEl = document.getElementById("stats-time-vs-area");
+      if (timeVsAreaEl) {
+        timeVsAreaEl.innerHTML = areasOrder.map(areaName => {
+          const minsArea = agg.areaStudyMinutesMap[areaName] || 0;
+          const pctTimeShare = agg.totalStudyMinutesGlobal > 0
+            ? Math.round((minsArea / agg.totalStudyMinutesGlobal) * 100)
+            : 0;
+          const qSt = agg.areaStatsAll[areaName] || { feitas: 0, certas: 0 };
+          const pctAcc = qSt.feitas > 0 ? Math.round((qSt.certas / qSt.feitas) * 100) : 0;
+          return `
+            <div class="card-surface p-2.5 flex flex-col gap-1">
+              <div class="font-bold truncate">${areaName}</div>
+              <div class="text-[11px] font-mono">⏱️ <b>${formatMinutesToHoursText(minsArea)}</b> (${pctTimeShare}%)</div>
+              <div class="text-[11px] font-mono" style="color: var(--text-muted);">🎯 ${qSt.feitas}q • <b>${pctAcc}%</b> acerto</div>
+              <div class="w-full h-1.5 card-inset overflow-hidden mt-1">
+                <div class="h-full" style="width:${pctTimeShare}%; background-color: var(--accent-teal);"></div>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
       const areasContainer = document.getElementById("stats-areas-bars");
       if (areasContainer) {
         areasContainer.innerHTML = areasOrder.map(areaName => {
@@ -3464,6 +4213,7 @@
 
     function openGoalModal() {
       document.getElementById("mg-daily").value = appState.dailyGoal || 40;
+      document.getElementById("mg-hours").value = appState.dailyHoursGoal || 3;
       document.getElementById("mg-annual").value = appState.annualGoal || 15000;
       const m = document.getElementById("modal-goals");
       if (m) { m.classList.remove("hidden"); m.classList.add("flex"); }
@@ -3476,6 +4226,7 @@
 
     function saveGoalsConfig() {
       appState.dailyGoal = Math.max(1, parseInt(document.getElementById("mg-daily").value) || 40);
+      appState.dailyHoursGoal = Math.max(0.5, parseFloat(document.getElementById("mg-hours").value) || 3);
       appState.annualGoal = Math.max(100, parseInt(document.getElementById("mg-annual").value) || 15000);
       saveAppState(true);
       closeGoalModal();
@@ -3546,7 +4297,9 @@
           customAccent: state.customAccent || null,
           spacedRepMode: state.spacedRepMode || "adaptive",
           dailyGoal: state.dailyGoal || 40,
+          dailyHoursGoal: state.dailyHoursGoal || 3,
           annualGoal: state.annualGoal || 15000,
+          pomoCycles: state.pomoCycles || 0,
           autoDownloadOnSave: !!state.autoDownloadOnSave
         },
         d: doneList,
@@ -3562,6 +4315,14 @@
           l.subtopic || "",
           l.feitas,
           l.certas
+        ]),
+        s: (state.studyLogs || []).map(st => [
+          st.id,
+          st.date,
+          st.macro,
+          st.minutes,
+          st.mode || "pomo25",
+          st.note || ""
         ]),
         p: state.parentLinks || {}
       };
@@ -3600,16 +4361,28 @@
         certas: Number(arr[7]) || 0
       }));
 
+      const studyLogs = (compact.s || []).map(arr => ({
+        id: arr[0],
+        date: arr[1],
+        macro: arr[2],
+        minutes: Number(arr[3]) || 0,
+        mode: arr[4] || "pomo25",
+        note: arr[5] || ""
+      }));
+
       const cfg = compact.cfg || {};
       return normalizeParsedState({
         themeMode: cfg.themeMode || "retro-98",
         customAccent: cfg.customAccent || null,
         spacedRepMode: cfg.spacedRepMode || "adaptive",
         dailyGoal: cfg.dailyGoal || 40,
+        dailyHoursGoal: cfg.dailyHoursGoal || 3,
         annualGoal: cfg.annualGoal || 15000,
+        pomoCycles: cfg.pomoCycles || 0,
         autoDownloadOnSave: !!cfg.autoDownloadOnSave,
         scheduleTopics,
         qlogs,
+        studyLogs,
         parentLinks: compact.p || {},
         updatedAt: compact.u || Date.now()
       });
@@ -3642,6 +4415,14 @@
         qMap.set(sig, l);
       }
       merged.qlogs = Array.from(qMap.values());
+
+      const stMap = new Map();
+      for (const s of (older.studyLogs || []).concat(newer.studyLogs || [])) {
+        const sig = s.id || `${s.date}_${s.macro}_${s.minutes}_${s.note}`;
+        stMap.set(sig, s);
+      }
+      merged.studyLogs = Array.from(stMap.values());
+      merged.pomoCycles = Math.max(localSt.pomoCycles || 0, remoteSt.pomoCycles || 0);
       merged.parentLinks = { ...(older.parentLinks || {}), ...(newer.parentLinks || {}) };
       merged.updatedAt = Math.max(localSt.updatedAt || 0, remoteSt.updatedAt || 0);
       return normalizeParsedState(merged);
@@ -3904,6 +4685,8 @@
         closeTopicHistoryModal();
         closeSubbranchManagerModal();
         closeGoalModal();
+        closeManualTimeModal();
+        closeStudyLogsHistoryModal();
         closeNewTopicModal();
         closeEditTopicModal();
         closeRenameGroupModal();
@@ -3916,6 +4699,7 @@
         if (activeModal.id === "modal-questions") { e.preventDefault(); saveQuestionSession(); }
         else if (activeModal.id === "modal-cloud-account" && currentAccountModalMode !== "drive") { e.preventDefault(); submitAccountModalForm(); }
         else if (activeModal.id === "modal-goals") { e.preventDefault(); saveGoalsConfig(); }
+        else if (activeModal.id === "modal-manual-time") { e.preventDefault(); saveManualStudyTime(); }
         else if (activeModal.id === "modal-rename-group") { e.preventDefault(); confirmRenameGroup(); }
         else if (activeModal.id === "modal-new-sched-topic") { e.preventDefault(); saveNewScheduleTopic(); }
         else if (activeModal.id === "modal-edit-topic") { e.preventDefault(); saveEditedScheduleTopic(); }
@@ -4420,6 +5204,123 @@
         window.pushStateToCloud(false);
       }, 900);
     };
+
+    // =========================================================================
+    // CONTADOR EM TEMPO REAL DE PESSOAS ONLINE AGORA (PRESENÇA AO VIVO)
+    // =========================================================================
+    const PRESENCE_TOPIC = "org_estudos_karol_live_presence_v1";
+    const PRESENCE_TTL_MS = 110000; // 1 min e 50 seg de janela ativa
+    const activePeers = new Map();
+    let presenceSSE = null;
+
+    function getDevicePresenceId() {
+      let id = localStorage.getItem("organizador_device_presence_id");
+      if (!id) {
+        id = "u_" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+        localStorage.setItem("organizador_device_presence_id", id);
+      }
+      return id;
+    }
+
+    const myPresenceId = getDevicePresenceId();
+
+    function renderLiveOnlineCount() {
+      const now = Date.now();
+      activePeers.set(myPresenceId, now);
+      for (const [peerId, lastSeen] of activePeers.entries()) {
+        if (peerId !== myPresenceId && now - lastSeen > PRESENCE_TTL_MS) {
+          activePeers.delete(peerId);
+        }
+      }
+      const count = Math.max(1, activePeers.size);
+      const badgeNum = document.getElementById("live-online-badge-num");
+      const titleNum = document.getElementById("live-online-titlebar-num");
+      const badgeLbl = document.getElementById("live-online-badge-label");
+
+      if (badgeNum) badgeNum.textContent = String(count);
+      if (titleNum) titleNum.textContent = String(count);
+      if (badgeLbl) badgeLbl.textContent = count === 1 ? "online agora" : "estudando agora";
+    }
+
+    async function sendPresencePing(eventType = "ping") {
+      try {
+        activePeers.set(myPresenceId, Date.now());
+        renderLiveOnlineCount();
+        const payload = JSON.stringify({ id: myPresenceId, ev: eventType, ts: Date.now() });
+        await fetch(`${NETLIFY_CLOUD_RELAY}/${PRESENCE_TOPIC}`, {
+          method: "POST",
+          body: payload,
+          keepalive: true
+        });
+      } catch (e) {}
+    }
+
+    async function initLivePresenceTracker() {
+      renderLiveOnlineCount();
+      try {
+        // 1. Busca quem enviou sinal nos últimos 2 minutos
+        const resp = await fetch(`${NETLIFY_CLOUD_RELAY}/${PRESENCE_TOPIC}/json?poll=1&since=2m`, {
+          cache: "no-store"
+        });
+        if (resp.ok) {
+          const text = await resp.text();
+          const now = Date.now();
+          for (const line of text.trim().split("\n")) {
+            if (!line) continue;
+            try {
+              const item = JSON.parse(line);
+              if (item.event !== "message" || !item.message) continue;
+              const msg = JSON.parse(item.message);
+              const msgTime = (item.time ? item.time * 1000 : msg.ts) || now;
+              if (msg.id && now - msgTime <= PRESENCE_TTL_MS) {
+                if (msg.ev === "leave") activePeers.delete(msg.id);
+                else activePeers.set(msg.id, msgTime);
+              }
+            } catch (e) {}
+          }
+          renderLiveOnlineCount();
+        }
+      } catch (e) {}
+
+      // 2. Anuncia que entrou no site
+      sendPresencePing("ping");
+
+      // 3. Escuta em tempo real quem entra ou sai
+      try {
+        presenceSSE = new EventSource(`${NETLIFY_CLOUD_RELAY}/${PRESENCE_TOPIC}/sse`);
+        presenceSSE.onmessage = (ev) => {
+          try {
+            const item = JSON.parse(ev.data);
+            if (!item || !item.message) return;
+            const msg = JSON.parse(item.message);
+            if (!msg || !msg.id) return;
+            if (msg.ev === "leave") {
+              if (msg.id !== myPresenceId) activePeers.delete(msg.id);
+            } else {
+              activePeers.set(msg.id, Date.now());
+            }
+            renderLiveOnlineCount();
+          } catch (e) {}
+        };
+      } catch (e) {}
+
+      // 4. Mantém presença ativa a cada 45s enquanto a aba estiver visível
+      setInterval(() => {
+        if (document.visibilityState === "visible") {
+          sendPresencePing("ping");
+        } else {
+          renderLiveOnlineCount();
+        }
+      }, 45000);
+
+      setInterval(renderLiveOnlineCount, 15000);
+
+      window.addEventListener("pagehide", () => {
+        sendPresencePing("leave");
+      });
+    }
+
+    initLivePresenceTracker();
   </script>
 </body>
 </html>
